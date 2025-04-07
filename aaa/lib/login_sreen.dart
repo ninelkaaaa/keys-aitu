@@ -15,7 +15,6 @@ class _LoginScreenState extends State<LoginScreen> {
     String phone = phoneController.text.trim();
     String code = codeController.text.trim();
 
-    // Просто выводим в консоль, чтобы видеть, что вводится
     print("Phone: $phone, Code: $code");
 
     if (phone == "+77001112233" && code == "1234") {
@@ -43,8 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset('assets/logo.png',
-                width: 200), // Проверьте путь к изображению
+            Image.asset('assets/logo.png', width: 200),
             SizedBox(height: 50),
             Text(
               "Вход",

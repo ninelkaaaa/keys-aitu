@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'scanner_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -27,38 +28,47 @@ class _HomeScreenState extends State<HomeScreen> {
     },
   ];
 
+  void _openScanner(BuildContext context, String action) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ScannerScreen(action: action),
+      ),
+    );
+  }
+
   void _showMenu(BuildContext context) {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
         return Container(
-          padding: EdgeInsets.all(16),
+          padding: const EdgeInsets.all(16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: Icon(Icons.vpn_key),
-                title: Text('Получить ключ', style: TextStyle(fontSize: 18)),
+                leading: const Icon(Icons.vpn_key),
+                title:
+                    const Text('Получить ключ', style: TextStyle(fontSize: 18)),
                 onTap: () {
                   Navigator.pop(context);
-                  print("Получить ключ");
+                  _openScanner(context, "получить");
                 },
               ),
               ListTile(
-                leading: Icon(Icons.check),
-                title: Text('Сдать ключ', style: TextStyle(fontSize: 18)),
+                leading: const Icon(Icons.check),
+                title: const Text('Сдать ключ', style: TextStyle(fontSize: 18)),
                 onTap: () {
                   Navigator.pop(context);
-                  print("Сдать ключ");
+                  _openScanner(context, "сдать");
                 },
               ),
               ListTile(
-                leading: Icon(Icons.sync),
-                title: Text('Передать ключ другому пользователю',
+                leading: const Icon(Icons.sync),
+                title: const Text('Передать ключ другому пользователю',
                     style: TextStyle(fontSize: 18)),
                 onTap: () {
                   Navigator.pop(context);
-                  print("Передать ключ");
+                  _openScanner(context, "передать");
                 },
               ),
             ],
@@ -72,10 +82,10 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('История ключей'),
+        title: const Text('История ключей'),
         actions: [
           IconButton(
-            icon: Icon(Icons.menu),
+            icon: const Icon(Icons.menu),
             onPressed: () => _showMenu(context),
           ),
         ],
@@ -89,8 +99,8 @@ class _HomeScreenState extends State<HomeScreen> {
               print("Нажатие на ${item['room']}");
             },
             child: Container(
-              margin: EdgeInsets.all(8),
-              padding: EdgeInsets.all(16),
+              margin: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: Colors.blue[50],
                 borderRadius: BorderRadius.circular(10),
@@ -100,28 +110,30 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Text(
                     'Номер аудитории: ${item['room']}',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 20, fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'Время получения: ${item['pickupTime']}',
-                    style: TextStyle(fontSize: 18),
+                    style: const TextStyle(fontSize: 18),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     'Время сдачи: ${item['returnTime'].isNotEmpty ? item['returnTime'] : "Не сдан"}',
-                    style: TextStyle(fontSize: 18),
+                    style: const TextStyle(fontSize: 18),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Container(
-                    padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
                     decoration: BoxDecoration(
                       color: item['isReturned'] ? Colors.green : Colors.red,
                       borderRadius: BorderRadius.circular(5),
                     ),
                     child: Text(
                       item['isReturned'] ? 'Сдан' : 'Не сдан',
-                      style: TextStyle(color: Colors.white, fontSize: 18),
+                      style: const TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),
                 ],
