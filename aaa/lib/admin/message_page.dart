@@ -65,8 +65,7 @@ class _MessagePageState extends State<MessagePage> {
       case MessageFilter.returned:
         return allMessages.where((msg) => msg.color == Colors.green).toList();
       case MessageFilter.all:
-      default:
-        return allMessages;
+      return allMessages;
     }
   }
 
