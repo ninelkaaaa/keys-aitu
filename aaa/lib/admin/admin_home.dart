@@ -36,18 +36,15 @@ class _AdminHomeState extends State<AdminHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // Force the entire page to have a white background.
       backgroundColor: Colors.white,
-      
       appBar: AppBar(
-        backgroundColor: Colors.white, // AppBar as white
-        elevation: 0, // Remove default shadow if needed.
+        backgroundColor: Colors.white, 
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black),
         title: const Text(
           "Главная",
           style: TextStyle(
-            color: Colors.black, // Title text in black for contrast.
+            color: Colors.black, 
             fontSize: 26,
             fontWeight: FontWeight.w600,
           ),
@@ -131,7 +128,7 @@ class _AdminHomeState extends State<AdminHome> {
 
   Widget _buildItemCard(Map<String, dynamic> item) {
     return Card(
-      color: Colors.white, // Ensures that the card background is white.
+      color: Colors.white, 
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.only(bottom: 12),
       child: Container(

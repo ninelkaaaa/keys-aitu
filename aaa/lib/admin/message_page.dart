@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-/// Возможные статусы подтверждения
+
 enum ActionStatus { pending, confirmed, cancelled }
 
 /// Модель сообщения
@@ -69,6 +69,8 @@ class _MessagePageState extends State<MessagePage> {
         return allMessages;
     }
   }
+
+  
 
   Future<void> _showConfirmationBottomSheet(
       BuildContext context, Message message) async {
@@ -164,16 +166,19 @@ class _MessagePageState extends State<MessagePage> {
     }
   }
 
+
   @override
   Widget build(BuildContext context) {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.dark.copyWith(
-        statusBarColor: Colors.white, // ✅ делаем статус-бар белым
+        statusBarColor: Colors.white,
         statusBarIconBrightness: Brightness.dark,
       ),
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
+          backgroundColor: Colors.white, 
+
           centerTitle: true,
           title: const Text('Сообщения'),
           actions: [
