@@ -9,22 +9,22 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   final List<Map<String, dynamic>> keyHistory = [
     {
-      'room': 'Аудитория 101',
-      'pickupTime': '10:00',
-      'returnTime': '12:00',
-      'isReturned': true
+      'room': 'C1.3.240',
+      'date': '12.01.2024',
+      'time': '13:00',
+      'status': false, // не сдан (красный)
     },
     {
-      'room': 'Аудитория 102',
-      'pickupTime': '11:00',
-      'returnTime': '',
-      'isReturned': false
+      'room': 'C1.3.240',
+      'date': '12.01.2024',
+      'time': '13:00',
+      'status': false,
     },
     {
-      'room': 'Аудитория 103',
-      'pickupTime': '09:30',
-      'returnTime': '10:30',
-      'isReturned': true
+      'room': 'C1.3.245',
+      'date': '12.01.2024',
+      'time': '13:00',
+      'status': true, // сдан (зелёный)
     },
   ];
 
@@ -83,6 +83,9 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('История ключей'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
         actions: [
           IconButton(
             icon: const Icon(Icons.menu),
@@ -90,58 +93,78 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: keyHistory.length,
-        itemBuilder: (context, index) {
-          final item = keyHistory[index];
-          return InkWell(
-            onTap: () {
-              print("Нажатие на ${item['room']}");
-            },
-            child: Container(
-              margin: const EdgeInsets.all(8),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Номер аудитории: ${item['room']}',
-                    style: const TextStyle(
-                        fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Время получения: ${item['pickupTime']}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Время сдачи: ${item['returnTime'].isNotEmpty ? item['returnTime'] : "Не сдан"}',
-                    style: const TextStyle(fontSize: 18),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: 5, horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: item['isReturned'] ? Colors.green : Colors.red,
-                      borderRadius: BorderRadius.circular(5),
-                    ),
-                    child: Text(
-                      item['isReturned'] ? 'Сдан' : 'Не сдан',
-                      style: const TextStyle(color: Colors.white, fontSize: 18),
-                    ),
-                  ),
-                ],
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+            child: TextField(
+              decoration: InputDecoration(
+                hintText: 'Поиск',
+                prefixIcon: Icon(Icons.search),
+                suffixIcon: Icon(Icons.filter_list),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16),
               ),
             ),
-          );
-        },
+          ),
+          Expanded(
+            child: ListView.builder(
+              itemCount: keyHistory.length,
+              itemBuilder: (context, index) {
+                final item = keyHistory[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4), // Уменьшено расстояние
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black12,
+                          blurRadius: 4,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                        leading: Container(
+                        width: 6,
+                        height: double.infinity,
+                        decoration: BoxDecoration(
+                          color: item['status'] ? Colors.green : Colors.red,
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      title: Text(
+                        'Номер аудитории: ${item['room']}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18, // Увеличен размер шрифта
+                        ),
+                      ),
+                      subtitle: Text(
+                        'Дата: ${item['date']} \nВремя: ${item['time']}',
+                        style: const TextStyle(fontSize: 16), // Увеличен размер шрифта
+                      ),
+                      trailing: CircleAvatar(
+                        radius: 10,
+                        backgroundColor:
+                            item['status'] ? Colors.green : Colors.red,
+                      ),
+                      onTap: () {
+                        print("Нажатие на ${item['room']}");
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
 }
+

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'home_screen.dart'; // Импортируем главный экран
+import 'home_screen.dart';
+import 'admin_screen.dart'; // импортируем экран администратора
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -18,14 +19,22 @@ class _LoginScreenState extends State<LoginScreen> {
     print("Phone: $phone, Code: $code");
 
     if (phone == "+77001112233" && code == "1234") {
+      // обычный пользователь
       setState(() {
         isError = false;
       });
-
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-            builder: (context) => HomeScreen()), // Переход на главный экран
+        MaterialPageRoute(builder: (context) => HomeScreen()),
+      );
+    } else if (phone == "+77009998877" && code == "admin123") {
+      // администратор
+      setState(() {
+        isError = false;
+      });
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => AdminScreen()),
       );
     } else {
       setState(() {
