@@ -58,7 +58,6 @@ class _AdminHomeState extends State<AdminHome> {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           children: [
-            // Make sure SearchFilterRow is designed with a white background.
             const SearchFilterRow(), 
             const SizedBox(height: 16),
             
@@ -75,7 +74,6 @@ class _AdminHomeState extends State<AdminHome> {
         ),
       ),
       
-      // Set bottom navigation bar background to white.
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: Colors.white,
         currentIndex: _currentIndex,
@@ -83,7 +81,6 @@ class _AdminHomeState extends State<AdminHome> {
           setState(() {
             _currentIndex = newIndex;
           });
-          // Navigate to MessagePage if the "Сообщения" item is tapped.
           if (newIndex == 1) {
             Navigator.push(
               context,
@@ -132,7 +129,6 @@ class _AdminHomeState extends State<AdminHome> {
     );
   }
 
-  /// Builds a card for each item in the list.
   Widget _buildItemCard(Map<String, dynamic> item) {
     return Card(
       color: Colors.white, // Ensures that the card background is white.
@@ -145,7 +141,6 @@ class _AdminHomeState extends State<AdminHome> {
         ),
         child: Row(
           children: [
-            // Left colored stripe.
             Container(
               width: 6,
               decoration: BoxDecoration(
@@ -156,7 +151,6 @@ class _AdminHomeState extends State<AdminHome> {
                 ),
               ),
             ),
-            // Text content.
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -184,7 +178,6 @@ class _AdminHomeState extends State<AdminHome> {
                 ),
               ),
             ),
-            // Right dot indicator.
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Container(
