@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home_screen.dart';
-import 'admin_screen.dart'; // импортируем экран администратора
+
+import 'admin/admin_home.dart'; 
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -34,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
       });
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => AdminScreen()),
+        MaterialPageRoute(builder: (context) => AdminHome()),
       );
     } else {
       setState(() {
