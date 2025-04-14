@@ -1,71 +1,48 @@
 import 'package:flutter/material.dart';
 
-class SearchFilterRow extends StatelessWidget {
-  const SearchFilterRow({Key? key}) : super(key: key);
+class SearchAndFilterRow extends StatelessWidget {
+  final String searchQuery;
+  final Function(String) onSearchChanged;
+  final VoidCallback onFilterPressed;
+
+  const SearchAndFilterRow({
+    super.key,
+    required this.searchQuery,
+    required this.onSearchChanged,
+    required this.onFilterPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        // Строка поиска в виде «пилюли»
         Expanded(
-          child: Container(
-            height: 56,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: Colors.grey.shade300),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.search,
-                  color: Colors.grey.shade600,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  'Поиск',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 16,
-                  ),
-                ),
-              ],
+          child: TextField(
+            onChanged: onSearchChanged,
+            decoration: InputDecoration(
+              hintText: "Поиск...",
+              prefixIcon: const Icon(Icons.search),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              isDense: true,
             ),
           ),
         ),
-        const SizedBox(width: 16),
-        // Отдельная кнопка-фильтр (в виде круга)
-        Container(
-          height: 56,
-          width: 56,
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey.shade300),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.05),
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
+        const SizedBox(width: 12),
+        ElevatedButton(
+          onPressed: onFilterPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.grey[200],
+            foregroundColor: Colors.black87,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
-          child: IconButton(
-            icon: Icon(Icons.filter_list, color: Colors.grey.shade600),
-            onPressed: () {
-              // Логика фильтра или открытие меню фильтрации
-            },
-          ),
-        )
+          child: const Icon(Icons.filter_list),
+        ),
       ],
     );
   }

@@ -5,7 +5,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 enum ActionStatus { pending, confirmed, cancelled }
 
-/// Модель сообщения
 class Message {
   final String title;
   final String room;
@@ -69,67 +68,128 @@ class _MessagePageState extends State<MessagePage> {
     }
   }
 
-  
+  Future<void> _showConfirmationBottomSheet(BuildContext context, Message message) async {
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (ctx) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: const BoxDecoration(
+                color: Color(0xFF2E70E8),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Image.asset(
+                  'assets/done_blue.png',
+                  width: 36,
+                  height: 36,
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Вы подтвердили ${message.title.replaceFirst("Подтвердить", "").trim()} ${message.room}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E70E8),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Хорошо',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      );
+    },
+  );
+}
+Future<void> _showCancellationBottomSheet(BuildContext context, Message message) async {
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.white,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (ctx) {
+      return Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Image.asset(
+                'assets/close.png',
+                width: 56,
+                height: 56,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Вы отменили ${message.title.replaceFirst("Подтвердить", "").trim()} ${message.room}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2E70E8),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: const Text(
+                  'Понятно',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      );
+    },
+  );
+}
 
-  Future<void> _showConfirmationBottomSheet(
-      BuildContext context, Message message) async {
-    await showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 72,
-                height: 72,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF2E70E8),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check, color: Colors.white, size: 40),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Вы подтвердили ${message.title.replaceFirst("Подтвердить", "").trim()} ${message.room}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black87,
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Navigator.pop(context),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2E70E8),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Хорошо',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-  }
+
 
   void _showFilterMenu() async {
     final result = await showModalBottomSheet<MessageFilter>(
@@ -205,10 +265,12 @@ class _MessagePageState extends State<MessagePage> {
                     msg.actionStatus = ActionStatus.confirmed;
                   });
                 },
-                onCancelPressed: () {
-                  setState(() {
-                    msg.actionStatus = ActionStatus.cancelled;
-                  });
+                onCancelPressed: () async{
+               await _showCancellationBottomSheet(context, msg);
+setState(() {
+  msg.actionStatus = ActionStatus.cancelled;
+});
+
                 },
               )
                   .animate()
