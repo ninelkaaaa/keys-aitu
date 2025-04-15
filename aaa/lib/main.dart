@@ -1,5 +1,5 @@
-// import 'package:aaa/admin/admin_home.dart';
-import 'package:aaa/login_sreen.dart';
+import 'package:aaa/admin/admin_home.dart';
+// import 'package:aaa/login_sreen.dart';
 
 import 'package:flutter/material.dart';
 
@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
   scaffoldBackgroundColor: const Color(0xFFF5F5F5),
       ),
-       home: LoginScreen(),
+       home: AdminHome(),
     );
   }
 }

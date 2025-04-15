@@ -1,9 +1,10 @@
-
 import 'package:flutter/material.dart';
-import 'package:aaa/components/search.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:aaa/components/search_and_filter.dart';
+import 'package:aaa/home_screen.dart';
 import 'message_page.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:aaa/home_screen.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({Key? key}) : super(key: key);
@@ -14,29 +15,69 @@ class AdminHome extends StatefulWidget {
 
 class _AdminHomeState extends State<AdminHome> {
   int _currentIndex = 0;
+
+  final String baseUrl = "https://backaitu.onrender.com";
+
   String _searchQuery = '';
   String _selectedFilter = 'all';
 
-  final List<Map<String, dynamic>> _items = [
-    {
-      "title": "C1.3.240",
-      "dateTime": "12.01.2024 13:00",
-      "leftBarColor": Colors.grey,
-      "dotColor": Colors.red,
-    },
-    {
-      "title": "C1.3.240",
-      "dateTime": "12.01.2024 13:00",
-      "leftBarColor": Colors.grey,
-      "dotColor": Colors.red,
-    },
-    {
-      "title": "C1.3.245",
-      "dateTime": "12.01.2024 13:00",
-      "leftBarColor": Colors.blue,
-      "dotColor": Colors.green,
-    },
-  ];
+  List<dynamic> keysList = [];
+  bool isLoading = false;
+  String errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchKeysFromServer();
+  }
+
+  Future<void> _fetchKeysFromServer() async {
+    setState(() => isLoading = true);
+    try {
+      final url = Uri.parse('$baseUrl/keys');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          // data['keys'] – список ключей
+          setState(() {
+            keysList = data['keys'];  
+            errorMessage = '';
+          });
+        } else {
+          setState(() {
+            errorMessage = data['message'] ?? "Неизвестная ошибка сервера";
+          });
+        }
+      } else {
+        setState(() {
+          errorMessage = 'Ошибка сервера: ${response.statusCode}';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = "Ошибка: $e";
+      });
+    } finally {
+      setState(() => isLoading = false);
+    }
+  }
+
+  List<dynamic> get _filteredItems {
+    return keysList.where((item) {
+      final title = (item["key_name"] ?? "").toLowerCase();
+      final matchesSearch = title.contains(_searchQuery.toLowerCase());
+
+      bool isAvailable = item["available"] == true;
+
+      bool matchesFilter = _selectedFilter == 'all'
+          || (_selectedFilter == 'returned' && !isAvailable)
+          || (_selectedFilter == 'received' && isAvailable);
+
+      return matchesSearch && matchesFilter;
+    }).toList();
+  }
 
   void _showFilterSheet() {
     showModalBottomSheet(
@@ -45,21 +86,18 @@ class _AdminHomeState extends State<AdminHome> {
         return Column(
           mainAxisSize: MainAxisSize.min,
           children: ['all', 'received', 'returned'].map((filter) {
+            String label;
+            if (filter == 'all') label = 'Все';
+            else if (filter == 'returned') label = 'Не доступен (выдан)';
+            else label = 'Доступен';
+
             return ListTile(
-              title: Text(
-                filter == 'all'
-                    ? 'Все'
-                    : filter == 'returned'
-                        ? 'Сданные'
-                        : 'Не сданные',
-              ),
+              title: Text(label),
               trailing: _selectedFilter == filter
                   ? const Icon(Icons.check, color: Colors.blue)
                   : null,
               onTap: () {
-                setState(() {
-                  _selectedFilter = filter;
-                });
+                setState(() => _selectedFilter = filter);
                 Navigator.pop(context);
               },
             );
@@ -69,188 +107,7 @@ class _AdminHomeState extends State<AdminHome> {
     );
   }
 
-  List<Map<String, dynamic>> get _filteredItems {
-    return _items.where((item) {
-      final title = (item["title"] ?? "").toLowerCase();
-      final matchesSearch = title.contains(_searchQuery.toLowerCase());
-      final matchesFilter = _selectedFilter == 'all' ||
-          (_selectedFilter == 'returned' && item["dotColor"] == Colors.green) ||
-          (_selectedFilter == 'received' && item["dotColor"] == Colors.red);
-      return matchesSearch && matchesFilter;
-    }).toList();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black),
-        title: const Text(
-          "Главная",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 26,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          children: [
-            SearchAndFilterRow(
-              searchQuery: _searchQuery,
-              onSearchChanged: (query) {
-                setState(() => _searchQuery = query);
-              },
-              onFilterPressed: _showFilterSheet,
-            ),
-            const SizedBox(height: 16),
-            Expanded(
-              child: ListView.builder(
-                itemCount: _filteredItems.length,
-                itemBuilder: (context, index) {
-                  final item = _filteredItems[index];
-                  return InkWell(
-                    onTap: () => _showCallSheet(context, item["title"]),
-                    child: _buildItemCard(item),
-                  );
-                },
-              ),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) =>  HomeScreen()),
-                  );
-                },
-                icon: const Icon(Icons.arrow_forward),
-                label: const Text("Перейти на Главную"),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E70E8),
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        currentIndex: _currentIndex,
-        onTap: (newIndex) {
-          setState(() => _currentIndex = newIndex);
-          if (newIndex == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const MessagePage()),
-            );
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: "Главная",
-          ),
-          BottomNavigationBarItem(
-            icon: Stack(
-              children: [
-                Icon(Icons.message),
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: CircleAvatar(
-                    radius: 8,
-                    backgroundColor: Colors.red,
-                    child: Text(
-                      '2',
-                      style: TextStyle(fontSize: 10, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            label: "Сообщения",
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildItemCard(Map<String, dynamic> item) {
-    return Card(
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Container(
-        height: 75,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 6,
-              decoration: BoxDecoration(
-                color: item["leftBarColor"],
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                ),
-              ),
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      item["title"] ?? "",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      item["dateTime"] ?? "",
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(right: 12),
-              child: Container(
-                width: 14,
-                height: 14,
-                decoration: BoxDecoration(
-                  color: item["dotColor"],
-                  shape: BoxShape.circle,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
+  // Телефонный вызов
   void _makePhoneCall(String phoneNumber) async {
     final Uri url = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(url)) {
@@ -260,6 +117,7 @@ class _AdminHomeState extends State<AdminHome> {
     }
   }
 
+  // BottomSheet при тапе на элемент
   void _showCallSheet(BuildContext context, String title) {
     showModalBottomSheet(
       context: context,
@@ -299,6 +157,162 @@ class _AdminHomeState extends State<AdminHome> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildItemCard(dynamic item) {
+  
+    bool isAvailable = item["available"] == true;
+    return Card(
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        height: 75,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 6,
+              decoration: BoxDecoration(
+                color: isAvailable ? Colors.grey : Colors.blue,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                ),
+              ),
+            ),
+          
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item["key_name"] ?? "",
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    if (!isAvailable)
+                      Text(
+                        "Выдан: ${item['last_user'] ?? 'Неизвестно'}",
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      )
+                    else
+                      Text(
+                        "Доступен",
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      )
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: Container(
+                width: 14,
+                height: 14,
+                decoration: BoxDecoration(
+                  color: isAvailable ? Colors.green : Colors.red,
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.black),
+        title: const Text(
+          "Главная",
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 26,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        backgroundColor: Colors.white,
+        currentIndex: _currentIndex,
+        onTap: (newIndex) {
+          setState(() => _currentIndex = newIndex);
+          if (newIndex == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const MessagePage()),
+            );
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Главная",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.message),
+            label: "Сообщения",
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Column(
+          children: [
+             SearchAndFilter(
+              searchQuery: _searchQuery,
+              onSearchChanged: (val) {
+                setState(() => _searchQuery = val);
+              },
+              onFilterPressed: _showFilterSheet,
+            ),
+    
+
+            const SizedBox(height: 16),
+
+            if (isLoading)
+              const Expanded(child: Center(child: CircularProgressIndicator()))
+            else if (errorMessage.isNotEmpty)
+              Expanded(
+                child: Center(
+                  child: Text(errorMessage, style: const TextStyle(color: Colors.red)),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _filteredItems.length,
+                  itemBuilder: (context, index) {
+                    final item = _filteredItems[index];
+                    return InkWell(
+                      onTap: () => _showCallSheet(context, item["key_name"] ?? ""),
+                      child: _buildItemCard(item),
+                    );
+                  },
+                ),
+              ),
+
+           
+          ],
+        ),
+      ),
     );
   }
 }

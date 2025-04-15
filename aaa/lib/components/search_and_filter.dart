@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
-class SearchAndFilterRow extends StatelessWidget {
+class SearchAndFilter extends StatelessWidget {
   final String searchQuery;
-  final Function(String) onSearchChanged;
+  final ValueChanged<String> onSearchChanged;
   final VoidCallback onFilterPressed;
 
-  const SearchAndFilterRow({
+  const SearchAndFilter({
     super.key,
     required this.searchQuery,
     required this.onSearchChanged,
@@ -20,13 +20,12 @@ class SearchAndFilterRow extends StatelessWidget {
           child: TextField(
             onChanged: onSearchChanged,
             decoration: InputDecoration(
-              hintText: "Поиск...",
+              hintText: 'Поиск...',
               prefixIcon: const Icon(Icons.search),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+              contentPadding: const EdgeInsets.symmetric(vertical: 10),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              isDense: true,
             ),
           ),
         ),
@@ -39,7 +38,7 @@ class SearchAndFilterRow extends StatelessWidget {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
             ),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           ),
           child: const Icon(Icons.filter_list),
         ),
