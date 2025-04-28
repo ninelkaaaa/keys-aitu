@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        // Обновленная версия Android Gradle Plugin
+        classpath 'com.android.tools.build:gradle:8.2.1'  // Обновлено на версию 8.2.1
+    }
+}
+
 allprojects {
     repositories {
         google()
