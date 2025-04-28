@@ -1,8 +1,9 @@
+import 'package:aaa/login_sreen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:aaa/components/search_and_filter.dart';
-import 'package:aaa/home_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'message_page.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -30,7 +31,14 @@ class _AdminHomeState extends State<AdminHome> {
     super.initState();
     _fetchKeysFromServer();
   }
-
+Future<void> _logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove("user_id");
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  }
   Future<void> _fetchKeysFromServer() async {
     setState(() => isLoading = true);
     try {
@@ -77,35 +85,88 @@ class _AdminHomeState extends State<AdminHome> {
 
       return matchesSearch && matchesFilter;
     }).toList();
-  }
+  }void _showFilterSheet() {
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: const Color(0xFFF9F9F9), // светло-серый фон
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (_) {
+      final options = {
+        'all': 'Все',
+        'received': 'Доступен',
+        'returned': 'Не доступен (выдан)',
+      };
 
-  void _showFilterSheet() {
-    showModalBottomSheet(
-      context: context,
-      builder: (_) {
-        return Column(
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+        child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: ['all', 'received', 'returned'].map((filter) {
-            String label;
-            if (filter == 'all') label = 'Все';
-            else if (filter == 'returned') label = 'Не доступен (выдан)';
-            else label = 'Доступен';
+          children: [
+            const Text(
+              'Фильтр по статусу',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1C1C1E),
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...options.entries.map((entry) {
+              final isSelected = _selectedFilter == entry.key;
 
-            return ListTile(
-              title: Text(label),
-              trailing: _selectedFilter == filter
-                  ? const Icon(Icons.check, color: Colors.blue)
-                  : null,
-              onTap: () {
-                setState(() => _selectedFilter = filter);
-                Navigator.pop(context);
-              },
-            );
-          }).toList(),
-        );
-      },
-    );
-  }
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 6),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(10),
+                  onTap: () {
+                    setState(() => _selectedFilter = entry.key);
+                    Navigator.pop(context);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? const Color(0xFFE3EFFE) // светло-синий при выборе
+                          : Colors.transparent,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 14, horizontal: 12),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            entry.value,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight:
+                                  isSelected ? FontWeight.bold : FontWeight.normal,
+                              color: isSelected
+                                  ? const Color(0xFF1D5DCC) // строгий синий
+                                  : const Color(0xFF3C3C3C),
+                            ),
+                          ),
+                        ),
+                        if (isSelected)
+                          const Icon(Icons.check,
+                              color: Color(0xFF1D5DCC), size: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+            const SizedBox(height: 8),
+          ],
+          
+        ),
+      );
+    },
+  );
+}
+
+
 
   // Телефонный вызов
   void _makePhoneCall(String phoneNumber) async {
@@ -124,6 +185,7 @@ class _AdminHomeState extends State<AdminHome> {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
+      
       builder: (context) {
         return Padding(
           padding: const EdgeInsets.all(20),
@@ -235,12 +297,12 @@ class _AdminHomeState extends State<AdminHome> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black),
         title: const Text(
+          
           "Главная",
           style: TextStyle(
             color: Colors.black,
@@ -249,29 +311,58 @@ class _AdminHomeState extends State<AdminHome> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
+   bottomNavigationBar: Padding(
+  padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
+  child: Container(
+    decoration: BoxDecoration(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(30),
+      boxShadow: [
+        BoxShadow(
+          color: Colors.black12.withOpacity(0.1),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ],
+    ),
+    child: ClipRRect(
+      borderRadius: BorderRadius.circular(30),
+      child: BottomNavigationBar(
         backgroundColor: Colors.white,
         currentIndex: _currentIndex,
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: const Color(0xFF2F80ED), // Ярко-синий (или можешь заменить на розовый)
+        unselectedItemColor: Colors.grey,
+        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
+        elevation: 0,
         onTap: (newIndex) {
           setState(() => _currentIndex = newIndex);
           if (newIndex == 1) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const MessagePage()),
+              MaterialPageRoute(builder: (_) => const MessagePage()),
             );
           }
         },
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
             label: "Главная",
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.message),
+            icon: Icon(Icons.mail_outline),
+            activeIcon: Icon(Icons.mail),
             label: "Сообщения",
           ),
         ],
       ),
+    ),
+  ),
+),
+
+
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
@@ -315,4 +406,4 @@ class _AdminHomeState extends State<AdminHome> {
       ),
     );
   }
-}
+} 

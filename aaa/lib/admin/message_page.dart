@@ -1,26 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
-
 enum ActionStatus { pending, confirmed, cancelled }
 
-class Message {
-  final String title;
-  final String room;
-  final String time;
-  final Color color;
-  ActionStatus? actionStatus;
+// Модель для «запроса»
+class PendingRequest {
+  final int historyId;
+  final String title; // «Подтвердить получение ключа ...»
+  final String room;  // «C1.3.240»
+  final String time;  // «2m» (или timestamp)
+  final bool isReceive; // true= «На получение», false= «На сдачу» (пример)
 
-  Message({
+  ActionStatus status;
+
+  PendingRequest({
+    required this.historyId,
     required this.title,
     required this.room,
     required this.time,
-    required this.color,
-    this.actionStatus,
+    required this.isReceive,
+    this.status = ActionStatus.pending,
   });
 }
 
+// 
 enum MessageFilter { all, received, returned }
 
 class MessagePage extends StatefulWidget {
@@ -33,163 +39,131 @@ class MessagePage extends StatefulWidget {
 class _MessagePageState extends State<MessagePage> {
   MessageFilter selectedFilter = MessageFilter.all;
 
-  final List<Message> allMessages = [
-    Message(
-      title: 'Подтвердить получение ключа от',
-      room: 'C1.3.240',
-      time: '2m',
-      color: Colors.blue,
-      actionStatus: ActionStatus.pending,
-    ),
-    Message(
-      title: 'Подтвердить сдачу ключа от',
-      room: 'C1.3.240',
-      time: '2m',
-      color: Colors.green,
-      actionStatus: ActionStatus.pending,
-    ),
-    Message(
-      title: 'Вы отменили получение ключа от',
-      room: 'C1.3.245',
-      time: '40m',
-      color: Colors.grey,
-      actionStatus: null,
-    ),
-  ];
+  final String baseUrl = "https://backaitu.onrender.com";
 
-  List<Message> get filteredMessages {
-    switch (selectedFilter) {
-      case MessageFilter.received:
-        return allMessages.where((msg) => msg.color == Colors.blue).toList();
-      case MessageFilter.returned:
-        return allMessages.where((msg) => msg.color == Colors.green).toList();
-      case MessageFilter.all:
-      return allMessages;
+  List<PendingRequest> allRequests = [];
+  bool isLoading = false;
+  String errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPendingRequests();
+  }
+
+  // ================== ЗАПРОС pending-requests ===================
+  Future<void> _fetchPendingRequests() async {
+    setState(() => isLoading = true);
+    try {
+      final url = Uri.parse("$baseUrl/pending-requests");
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          // data['requests'] = список
+          final List reqs = data['requests'];
+          List<PendingRequest> temp = [];
+
+          for (var item in reqs) {
+            // item: { history_id, user_name, key_name, ...}
+            final hId = item['history_id'] as int;
+            final kName = item['key_name'] as String? ?? '???';
+            final userName = item['user_name'] as String? ?? '???';
+            final timeStamp = item['timestamp'] as String? ?? '...';
+
+            // Допустим, title="Подтвердить получение ключа от"
+            // room= kName
+            // time= timeStamp
+            temp.add(
+              PendingRequest(
+                historyId: hId,
+                title: "Подтвердить получение ключа от $userName?",
+                room: kName,
+                time: timeStamp,
+                isReceive: true, // пока отметим, что все «На получение»
+              ),
+            );
+          }
+
+          setState(() {
+            allRequests = temp;
+            errorMessage = '';
+          });
+        } else {
+          setState(() {
+            errorMessage = data['message'] ?? "Неизвестная ошибка";
+          });
+        }
+      } else {
+        setState(() {
+          errorMessage = "Ошибка сервера: ${response.statusCode}";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        errorMessage = "Сетевая ошибка: $e";
+      });
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
-  Future<void> _showConfirmationBottomSheet(BuildContext context, Message message) async {
-  await showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.white,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
-    builder: (ctx) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 72,
-              height: 72,
-              decoration: const BoxDecoration(
-                color: Color(0xFF2E70E8),
-                shape: BoxShape.circle,
-              ),
-              child: Center(
-                child: Image.asset(
-                  'assets/done_blue.png',
-                  width: 36,
-                  height: 36,
-                ),
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Вы подтвердили ${message.title.replaceFirst("Подтвердить", "").trim()} ${message.room}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E70E8),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Хорошо',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
+  // ================== ОДОБРИТЬ ===================
+  Future<void> _approveRequest(int historyId) async {
+    final url = Uri.parse("$baseUrl/approve-request");
+    final response = await http.post(
+      url,
+      headers: {"Content-Type":"application/json"},
+      body: jsonEncode({"history_id": historyId}),
+    );
+    if (response.statusCode == 200) {
+      // success => уберем из списка
+      setState(() {
+        allRequests.removeWhere((r) => r.historyId == historyId);
+      });
+    } else {
+      final err = jsonDecode(response.body);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(err["message"] ?? "Ошибка одобрения"))
       );
-    },
-  );
-}
-Future<void> _showCancellationBottomSheet(BuildContext context, Message message) async {
-  await showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.white,
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-    ),
-    builder: (ctx) {
-      return Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Center(
-              child: Image.asset(
-                'assets/close.png',
-                width: 56,
-                height: 56,
-              ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Вы отменили ${message.title.replaceFirst("Подтвердить", "").trim()} ${message.room}',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2E70E8),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                ),
-                child: const Text(
-                  'Понятно',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-          ],
-        ),
+    }
+  }
+
+  // ================== ОТКЛОНИТЬ ===================
+  Future<void> _denyRequest(int historyId) async {
+    final url = Uri.parse("$baseUrl/deny-request");
+    final response = await http.post(
+      url,
+      headers: {"Content-Type":"application/json"},
+      body: jsonEncode({"history_id": historyId}),
+    );
+    if (response.statusCode == 200) {
+      // success => уберем из списка
+      setState(() {
+        allRequests.removeWhere((r) => r.historyId == historyId);
+      });
+    } else {
+      final err = jsonDecode(response.body);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(err["message"] ?? "Ошибка отклонения"))
       );
-    },
-  );
-}
+    }
+  }
 
-
+  // ================== ФИЛЬТРАЦИЯ (опционально) ===================
+  List<PendingRequest> get filteredMessages {
+    switch (selectedFilter) {
+      case MessageFilter.received:
+        // Показывать только "На получение"
+        return allRequests.where((msg) => msg.isReceive).toList();
+      case MessageFilter.returned:
+        // Показывать только "На сдачу"
+        return allRequests.where((msg) => !msg.isReceive).toList();
+      case MessageFilter.all:
+      default:
+        return allRequests;
+    }
+  }
 
   void _showFilterMenu() async {
     final result = await showModalBottomSheet<MessageFilter>(
@@ -219,114 +193,67 @@ Future<void> _showCancellationBottomSheet(BuildContext context, Message message)
     );
 
     if (result != null) {
-      setState(() {
-        selectedFilter = result;
-      });
+      setState(() => selectedFilter = result);
     }
   }
 
-
+  // ================== BUILD ===================
   @override
   Widget build(BuildContext context) {
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.dark.copyWith(
-        statusBarColor: Colors.white,
-        statusBarIconBrightness: Brightness.dark,
-      ),
-      child: Scaffold(
+    return Scaffold(
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: const Text('Уведомления (Запросы)'),
+        centerTitle: true,
         backgroundColor: Colors.white,
-        appBar: AppBar(
-          backgroundColor: Colors.white, 
-
-          centerTitle: true,
-          title: const Text('Сообщения'),
-          actions: [
-            IconButton(
-              icon: const Icon(Icons.filter_list, color: Colors.black),
-              onPressed: _showFilterMenu,
-            ),
-          ],
-        ),
-        body: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 300),
-          transitionBuilder: (child, animation) {
-            return FadeTransition(opacity: animation, child: child);
-          },
-          child: ListView.builder(
-            key: ValueKey(selectedFilter),
-            itemCount: filteredMessages.length,
-            itemBuilder: (context, index) {
-              final msg = filteredMessages[index];
-              return MessageCard(
-                message: msg,
-                onYesPressed: () async {
-                  await _showConfirmationBottomSheet(context, msg);
-                  setState(() {
-                    msg.actionStatus = ActionStatus.confirmed;
-                  });
-                },
-                onCancelPressed: () async{
-               await _showCancellationBottomSheet(context, msg);
-setState(() {
-  msg.actionStatus = ActionStatus.cancelled;
-});
-
-                },
-              )
-                  .animate()
-                  .slideY(begin: 0.2, duration: 300.ms)
-                  .fadeIn(duration: 300.ms)
-                  .then(delay: (100 * index).ms);
-            },
+        foregroundColor: Colors.black,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list, color: Colors.black),
+            onPressed: _showFilterMenu,
           ),
-        ),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black),
+            onPressed: _fetchPendingRequests,
+          ),
+        ],
       ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : errorMessage.isNotEmpty
+              ? Center(child: Text(errorMessage, style: const TextStyle(color: Colors.red)))
+              : AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 300),
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                  child: ListView.builder(
+                    key: ValueKey(selectedFilter),
+                    itemCount: filteredMessages.length,
+                    itemBuilder: (context, index) {
+                      final req = filteredMessages[index];
+                      return _buildRequestCard(req);
+                    },
+                  ),
+                ),
     );
   }
-}
 
-class MessageCard extends StatelessWidget {
-  final Message message;
-  final VoidCallback onYesPressed;
-  final VoidCallback onCancelPressed;
-
-  const MessageCard({
-    super.key,
-    required this.message,
-    required this.onYesPressed,
-    required this.onCancelPressed,
-  });
-
-  String get displayTitle {
-    if (message.actionStatus == ActionStatus.confirmed) {
-      return message.title.replaceFirst("Подтвердить", "Вы подтвердили");
-    } else if (message.actionStatus == ActionStatus.cancelled) {
-      return message.title.replaceFirst("Подтвердить", "Вы отменили");
-    }
-    return message.title;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final bgColor = (message.actionStatus == ActionStatus.pending)
-        ? const Color(0xFFEDF3FF)
-        : Colors.white;
-
+  Widget _buildRequestCard(PendingRequest req) {
     return Container(
-      color: bgColor,
+      color: req.status == ActionStatus.pending ? const Color(0xFFEDF3FF) : Colors.white,
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(width: 16),
               Container(
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: message.color,
+                  color: req.isReceive ? Colors.blue : Colors.green,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -335,78 +262,64 @@ class MessageCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            displayTitle,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                          ),
-                        ),
-                        Text(
-                          message.time,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                      ],
+                    Text(
+                      req.title, // "Подтвердить получение ключа от Петров П..."
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black,
+                      ),
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      message.room,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.black,
-                      ),
+                      req.room, // "C1.3.240"
+                      style: const TextStyle(fontSize: 16, color: Colors.black),
                     ),
                   ],
                 ),
               ),
+              Text(
+                req.time,
+                style: const TextStyle(fontSize: 14, color: Colors.grey),
+              ),
               const SizedBox(width: 16),
             ],
           ),
-          if (message.actionStatus == ActionStatus.pending)
+          if (req.status == ActionStatus.pending)
             Padding(
               padding: const EdgeInsets.only(left: 60, top: 8),
               child: Row(
                 children: [
                   ElevatedButton(
-                    onPressed: onYesPressed,
+                    onPressed: () async {
+                      await _approveRequest(req.historyId);
+                      setState(() => req.status = ActionStatus.confirmed);
+                    },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2E70E8),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text(
-                      "Да",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
-                    ),
+                    child: const Text("Да", style: TextStyle(fontSize: 16, color: Colors.white)),
                   ),
                   const SizedBox(width: 8),
                   OutlinedButton(
-                    onPressed: onCancelPressed,
+                    onPressed: () async {
+                      await _denyRequest(req.historyId);
+                      setState(() => req.status = ActionStatus.cancelled);
+                    },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFF2E70E8)),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
                     child: const Text(
                       "Отмена",
-                      style:
-                          TextStyle(fontSize: 16, color: Color(0xFF2E70E8)),
+                      style: TextStyle(fontSize: 16, color: Color(0xFF2E70E8)),
                     ),
                   ),
                 ],
@@ -414,6 +327,6 @@ class MessageCard extends StatelessWidget {
             ),
         ],
       ),
-    );
+    ).animate().fadeIn().slideY(begin: 0.1);
   }
 }
