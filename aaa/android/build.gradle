@@ -4,8 +4,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        // Обновленная версия Android Gradle Plugin
-        classpath 'com.android.tools.build:gradle:8.2.1'  // Обновлено на версию 8.2.1
+        classpath 'com.android.tools.build:gradle:8.2.1'  // Актуальная версия Android Gradle Plugin
     }
 }
 
@@ -17,9 +16,11 @@ allprojects {
 }
 
 rootProject.buildDir = "../build"
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
 }
+
 subprojects {
     project.evaluationDependsOn(":app")
 }
@@ -27,3 +28,5 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+
