@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'confirm_action_screen.dart';
+import 'dart:convert';
 
 class ScannerScreen extends StatefulWidget {
   final String action;
@@ -19,6 +20,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
   final MobileScannerController _controller = MobileScannerController();
   bool _isActive = false;
   bool _scanned = false;
+  bool _torchOn = false;                       // 🔦 новое состояние
   String _hint = "Отсканируйте QR‑код ключа";
 
   void _start() {
@@ -29,22 +31,34 @@ class _ScannerScreenState extends State<ScannerScreen> {
     });
   }
 
-  void _onDetect(BarcodeCapture cap) {
-    if (!_isActive || _scanned) return;
-    final raw = cap.barcodes.first.rawValue;
-    if (raw == null || !raw.startsWith("key_id=")) return;
+  void _toggleTorch() async {
+    await _controller.toggleTorch();
+    setState(() => _torchOn = !_torchOn);
+  }
 
-    final idStr = raw.substring(7);
-    final id = int.tryParse(idStr);
-    if (id == null) {
-      setState(() => _hint = "Неверный формат ID");
+void _onDetect(BarcodeCapture cap) {
+  if (!_isActive || _scanned) return;
+
+  final raw = cap.barcodes.first.rawValue;
+  if (raw == null) return;
+
+  try {
+    final data = jsonDecode(raw);
+    if (data is! Map || !data.containsKey("key_id")) {
+      setState(() => _hint = "❌ Неверный QR-код (без key_id)");
+      return;
+    }
+
+    final id = data["key_id"];
+    if (id is! int) {
+      setState(() => _hint = "❌ key_id должен быть числом");
       return;
     }
 
     setState(() {
-      _hint = "🔑 Найден ключ ID $id";
+      _hint = "🔑 Найден ключ";
       _isActive = false;
-      _scanned  = true;
+      _scanned = true;
     });
 
     Future.delayed(const Duration(milliseconds: 300), () {
@@ -52,14 +66,18 @@ class _ScannerScreenState extends State<ScannerScreen> {
         context,
         MaterialPageRoute(
           builder: (_) => ConfirmActionScreen(
-            cabinetCode: idStr,
+            cabinetCode: id.toString(),
             action: widget.action,
             userId: widget.userId,
           ),
         ),
       );
     });
+  } catch (e) {
+    setState(() => _hint = "❌ Невозможно прочитать QR (ошибка формата)");
   }
+}
+
 
   @override
   void dispose() {
@@ -80,6 +98,16 @@ class _ScannerScreenState extends State<ScannerScreen> {
         backgroundColor: Colors.white,
         foregroundColor: blue,
         elevation: 1,
+        actions: [
+          IconButton(                       // 🔦 кнопка‑фонарик
+            tooltip: _torchOn ? "Выключить фонарик" : "Включить фонарик",
+            icon: Icon(
+              _torchOn ? Icons.flashlight_off : Icons.flashlight_on,
+              color: _torchOn ? Colors.amber : blue,
+            ),
+            onPressed: _toggleTorch,
+          ),
+        ],
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -102,10 +130,11 @@ class _ScannerScreenState extends State<ScannerScreen> {
               border: Border.all(color: blue, width: 2),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: MobileScanner(
-              controller: _controller,
-              onDetect: _onDetect,
-            ),
+         child: MobileScanner(
+  controller: _controller,
+  onDetect: _onDetect,
+),
+
           ),
 
           const SizedBox(height: 16),

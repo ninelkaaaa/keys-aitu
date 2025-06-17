@@ -340,7 +340,7 @@ return ListView.builder(
       orElse: () => null,
     );
 
-    String subtitle = "Нет данных";
+    String subtitle = "";
     if (!status && issueRecord != null) {
       final issuedAtStr = issueRecord["timestamp"];
       final issuedAt = DateTime.tryParse(
@@ -386,7 +386,7 @@ return ListView.builder(
           ),
           title: Text("Ключ: $keyName",
               style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-          subtitle: Text(subtitle, style: const TextStyle(fontSize: 16)),
+subtitle: subtitle.isEmpty ? null : Text(subtitle, style: const TextStyle(fontSize: 16)),
           trailing: CircleAvatar(
             radius: 10,
             backgroundColor: status ? Colors.green : const Color(0xFF7F9FDB),

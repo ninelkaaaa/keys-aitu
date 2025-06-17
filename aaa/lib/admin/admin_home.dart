@@ -31,14 +31,8 @@ class _AdminHomeState extends State<AdminHome> {
     super.initState();
     _fetchKeysFromServer();
   }
-Future<void> _logout() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove("user_id");
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
-    );
-  }
+
+
   Future<void> _fetchKeysFromServer() async {
     setState(() => isLoading = true);
     try {
@@ -168,7 +162,6 @@ Future<void> _logout() async {
 
 
 
-  // Телефонный вызов
   void _makePhoneCall(String phoneNumber) async {
     final Uri url = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(url)) {
@@ -178,7 +171,6 @@ Future<void> _logout() async {
     }
   }
 
-  // BottomSheet при тапе на элемент
   void _showCallSheet(BuildContext context, String title) {
     showModalBottomSheet(
       context: context,
@@ -310,6 +302,13 @@ Future<void> _logout() async {
             fontWeight: FontWeight.w600,
           ),
         ),
+        actions: [
+   IconButton(
+  icon: const Icon(Icons.logout),
+  tooltip: "Выход",
+  onPressed: () => _confirmLogout(context),
+),
+  ],
       ),
    bottomNavigationBar: Padding(
   padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
@@ -331,7 +330,7 @@ Future<void> _logout() async {
         backgroundColor: Colors.white,
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF2F80ED), // Ярко-синий (или можешь заменить на розовый)
+        selectedItemColor: const Color(0xFF2F80ED), 
         unselectedItemColor: Colors.grey,
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
@@ -406,4 +405,79 @@ Future<void> _logout() async {
       ),
     );
   }
-} 
+  
+}Future<void> _confirmLogout(BuildContext context) async {
+  final shouldLogout = await showDialog<bool>(
+    context: context,
+    barrierDismissible: false, // нельзя закрыть тапом вне окна
+    builder: (context) => Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            const Text(
+              "Подтвердите выход",
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              "Вы действительно хотите выйти из аккаунта?",
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16, color: Colors.black54),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black87,
+                      side: const BorderSide(color: Colors.black26),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(false),
+                    child: const Text("Отмена"),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2F80ED),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    onPressed: () => Navigator.of(context).pop(true),
+                    child: const Text("Выйти"),
+                  ),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    ),
+  );
+
+  if (shouldLogout == true) {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove("user_id");
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const LoginScreen()),
+    );
+  }
+}

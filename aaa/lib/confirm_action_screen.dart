@@ -42,25 +42,26 @@ class _ConfirmActionScreenState extends State<ConfirmActionScreen> {
       if (res.statusCode == 200) {
         final keys = (jsonDecode(res.body)["keys"] as List);
         final key   = keys.firstWhere((k) => k["id"] == id, orElse: () => null);
-        if (key != null) keyLabel = key["key_name"];          // C1.3.221
+        if (key != null) keyLabel = key["key_name"];          
       }
     } catch (_) {}
     setState(() { loading = false; });
   }
 
-  /* ───────── helpers для запросов ───────────────────── */
 
-  Future<void> _returnKey() async {
-    final res = await http.post(
-      Uri.parse("$baseUrl/return-key"),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "user_id": widget.userId,
-        "key_id" : int.parse(widget.cabinetCode),
-      }),
-    );
-    _showSnack(res);
-  }
+Future<void> _returnKey() async {
+  final res = await http.post(
+    Uri.parse("$baseUrl/request-key"),
+    headers: {"Content-Type": "application/json"}, // 🔴 ЭТО ОБЯЗАТЕЛЬНО
+    body: jsonEncode({
+      "user_id": widget.userId,
+      "key_id": int.parse(widget.cabinetCode),
+      "return": true
+    }),
+  );
+  _showResultDialog(res);
+}
+
 
   Future<void> _requestKey() async {
     final res = await http.post(
@@ -71,15 +72,57 @@ class _ConfirmActionScreenState extends State<ConfirmActionScreen> {
         "key_id" : int.parse(widget.cabinetCode),
       }),
     );
-    _showSnack(res);
+    _showResultDialog(res);
   }
+void _showResultDialog(http.Response res) {
+  final ok   = res.statusCode == 200;
+  final mess = jsonDecode(res.body)["message"] ?? "Ошибка";
 
-  void _showSnack(http.Response res) {
-    final ok   = res.statusCode == 200;
-    final mess = jsonDecode(res.body)["message"] ?? "Ошибка";
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mess)));
-    Navigator.pop(context, ok);
-  }
+  showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => AlertDialog(
+      backgroundColor: Colors.white,                       
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      title: Row(
+        children: [
+          Icon(
+            ok ? Icons.check_circle : Icons.error,
+            color: ok ? Colors.green : Colors.red,
+            size: 28,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              ok ? "Готово" : "Ошибка",
+              style: const TextStyle(
+                fontSize: 20, fontWeight: FontWeight.w700), 
+            ),
+          ),
+        ],
+      ),
+      content: Text(
+        mess,
+        style: const TextStyle(fontSize: 16, color: Colors.black87),
+      ),
+      actionsPadding: const EdgeInsets.only(right: 12, bottom: 8),
+      actions: [
+        TextButton(
+          style: TextButton.styleFrom(
+            foregroundColor: Colors.blue,                  
+            textStyle: const TextStyle(fontSize: 18),     
+          ),
+          onPressed: () {
+            Navigator.pop(context);       
+            Navigator.pop(context, ok);   
+          },
+          child: const Text("OK"),
+        ),
+      ],
+    ),
+  );
+}
+
 
   /* ───────── UI ─────────────────────────────────────── */
 

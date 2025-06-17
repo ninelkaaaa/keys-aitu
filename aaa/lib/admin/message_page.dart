@@ -6,14 +6,12 @@ import 'package:flutter_animate/flutter_animate.dart';
 
 enum ActionStatus { pending, confirmed, cancelled }
 
-// Модель для «запроса»
 class PendingRequest {
   final int historyId;
-  final String title; // «Подтвердить получение ключа ...»
-  final String room;  // «C1.3.240»
-  final String time;  // «2m» (или timestamp)
-  final bool isReceive; // true= «На получение», false= «На сдачу» (пример)
-
+  final String title; 
+  final String room;  
+  final String time; 
+  final bool isReceive; 
   ActionStatus status;
 
   PendingRequest({
@@ -50,65 +48,54 @@ class _MessagePageState extends State<MessagePage> {
     super.initState();
     _fetchPendingRequests();
   }
+Future<void> _fetchPendingRequests() async {
+  setState(() => isLoading = true);
+  try {
+    final url = Uri.parse("$baseUrl/pending-requests");
+    final response = await http.get(url);
 
-  // ================== ЗАПРОС pending-requests ===================
-  Future<void> _fetchPendingRequests() async {
-    setState(() => isLoading = true);
-    try {
-      final url = Uri.parse("$baseUrl/pending-requests");
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          // data['requests'] = список
-          final List reqs = data['requests'];
-          List<PendingRequest> temp = [];
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      if (data['status'] == 'success') {
+        final List reqs = data['requests'];
+        final temp = reqs.map<PendingRequest>((item) {
+          final hId   = item['history_id'] as int;
+          final kName = item['key_name']   as String? ?? '???';
+          final user  = item['user_name']  as String? ?? '???';
+          final ts    = item['timestamp']  as String? ?? '...';
+          final act   = item['action']     as String? ?? 'request';
 
-          for (var item in reqs) {
-            // item: { history_id, user_name, key_name, ...}
-            final hId = item['history_id'] as int;
-            final kName = item['key_name'] as String? ?? '???';
-            final userName = item['user_name'] as String? ?? '???';
-            final timeStamp = item['timestamp'] as String? ?? '...';
+          final isReceive = act == 'request';        
+          final title = isReceive
+              ? "Подтвердить получение ключа от $user?"
+              : "Подтвердить сдачу ключа от $user?";
 
-            // Допустим, title="Подтвердить получение ключа от"
-            // room= kName
-            // time= timeStamp
-            temp.add(
-              PendingRequest(
-                historyId: hId,
-                title: "Подтвердить получение ключа от $userName?",
-                room: kName,
-                time: timeStamp,
-                isReceive: true, // пока отметим, что все «На получение»
-              ),
-            );
-          }
+          return PendingRequest(
+            historyId : hId,
+            title     : title,
+            room      : kName,
+            time      : ts,
+            isReceive : isReceive,
+          );
+        }).toList();
 
-          setState(() {
-            allRequests = temp;
-            errorMessage = '';
-          });
-        } else {
-          setState(() {
-            errorMessage = data['message'] ?? "Неизвестная ошибка";
-          });
-        }
-      } else {
         setState(() {
-          errorMessage = "Ошибка сервера: ${response.statusCode}";
+          allRequests  = temp;
+          errorMessage = '';
         });
+      } else {
+        setState(() => errorMessage = data['message'] ?? "Неизвестная ошибка");
       }
-    } catch (e) {
-      setState(() {
-        errorMessage = "Сетевая ошибка: $e";
-      });
-    } finally {
-      setState(() => isLoading = false);
+    } else {
+      setState(() => errorMessage = "Ошибка сервера: ${response.statusCode}");
     }
+  } catch (e) {
+    setState(() => errorMessage = "Сетевая ошибка: $e");
+  } finally {
+    setState(() => isLoading = false);
   }
+}
 
-  // ================== ОДОБРИТЬ ===================
   Future<void> _approveRequest(int historyId) async {
     final url = Uri.parse("$baseUrl/approve-request");
     final response = await http.post(
@@ -129,7 +116,6 @@ class _MessagePageState extends State<MessagePage> {
     }
   }
 
-  // ================== ОТКЛОНИТЬ ===================
   Future<void> _denyRequest(int historyId) async {
     final url = Uri.parse("$baseUrl/deny-request");
     final response = await http.post(
@@ -138,7 +124,6 @@ class _MessagePageState extends State<MessagePage> {
       body: jsonEncode({"history_id": historyId}),
     );
     if (response.statusCode == 200) {
-      // success => уберем из списка
       setState(() {
         allRequests.removeWhere((r) => r.historyId == historyId);
       });
@@ -150,7 +135,6 @@ class _MessagePageState extends State<MessagePage> {
     }
   }
 
-  // ================== ФИЛЬТРАЦИЯ (опционально) ===================
   List<PendingRequest> get filteredMessages {
     switch (selectedFilter) {
       case MessageFilter.received:
@@ -197,7 +181,6 @@ class _MessagePageState extends State<MessagePage> {
     }
   }
 
-  // ================== BUILD ===================
   @override
   Widget build(BuildContext context) {
     return Scaffold(
