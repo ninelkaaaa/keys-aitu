@@ -64,7 +64,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           setState(() {
             isError = true;
-            errorMessage = "Неверный логин или пароль";
+            errorMessage = "Данные введены неверно.Попробуйте снова";
           });
         }
       }
@@ -100,67 +100,70 @@ final _phoneFormatter = TextInputFormatter.withFunction((oldValue, newValue) {
     selection: TextSelection.collapsed(offset: formatted.length),
   );
 });
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Image.asset('assets/logo.png', width: 200),
-            const SizedBox(height: 50),
-            const Text(
-              "Вход",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Image.asset('assets/logo.png', width: 200),
+          const SizedBox(height: 50),
+          const Text(
+            "Вход",
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          TextField(
+            controller: phoneController,
+            keyboardType: TextInputType.phone,
+            inputFormatters: [_phoneFormatter],
+            decoration: const InputDecoration(
+              labelText: "Телефон",
+              hintText: "+7 xxx xxx xx xx",
+              border: OutlineInputBorder(),
             ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: phoneController,
-              keyboardType: TextInputType.phone,
-              inputFormatters: [_phoneFormatter],
-              decoration: const InputDecoration(
-                labelText: "Телефон",
-                hintText: "+7 xxx xxx xx xx",
-                border: OutlineInputBorder(),
-              ),
+          ),
+          const SizedBox(height: 15),
+          TextField(
+            controller: passwordController,
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: "Код доступа",
+              border: OutlineInputBorder(),
             ),
-
-            const SizedBox(height: 15),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Код доступа",
-                border: OutlineInputBorder(),
-              ),
+          ),
+          const SizedBox(height: 10),
+          if (isError)
+            Text(
+              errorMessage,
+              style: const TextStyle(color: Colors.red),
             ),
-            const SizedBox(height: 10),
-            if (isError)
-              Text(
-                errorMessage,
-                style: const TextStyle(color: Colors.red),
-              ),
-            const SizedBox(height: 20),
-             isLoading
-                ? const CircularProgressIndicator()
-                : ElevatedButton(
+          const SizedBox(height: 20),
+          isLoading
+              ? const CircularProgressIndicator()
+              : SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
                     onPressed: _loginRequest,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 15, horizontal: 50),
+                      padding: const EdgeInsets.symmetric(vertical: 15),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
-                    child: const Text("Войти",
-                        style: TextStyle(color: Colors.white, fontSize: 18)),
+                    child: const Text(
+                      "Войти",
+                      style: TextStyle(color: Colors.white, fontSize: 18),
+                    ),
                   ),
-          ],
-        ),
+                ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

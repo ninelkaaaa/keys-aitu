@@ -169,50 +169,75 @@ class _AdminHomeState extends State<AdminHome> {
     } else {
       throw 'Could not launch $phoneNumber';
     }
-  }
-
-  void _showCallSheet(BuildContext context, String title) {
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text('Учитель: Петров П.П', style: TextStyle(fontSize: 16)),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () => _makePhoneCall('+7710504939'),
-                  icon: const Icon(Icons.phone),
-                  label: const Text('Позвонить'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2E70E8),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+  }void _showCallDialog(BuildContext context, String title) {
+  showGeneralDialog(
+    context: context,
+    barrierDismissible: true,
+    barrierLabel: "Call Dialog",
+    transitionDuration: const Duration(milliseconds: 300),
+    pageBuilder: (context, animation, secondaryAnimation) {
+      return Center(
+        child: Material(
+          color: Colors.transparent,
+          child: Container(
+            margin: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white, // белый фон
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 20,
+                  offset: Offset(0, 8),
+                )
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                const Text('Учитель: Петров П.П', style: TextStyle(fontSize: 16)),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: () => _makePhoneCall('+7710504939'),
+                    icon: const Icon(Icons.phone),
+                    label: const Text('Позвонить'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF2E70E8), // синий
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+    transitionBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: animation,
+        child: ScaleTransition(
+          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
+          child: child,
+        ),
+      );
+    },
+  );
+}
+
+
 
   Widget _buildItemCard(dynamic item) {
   
@@ -293,6 +318,11 @@ class _AdminHomeState extends State<AdminHome> {
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black),
+         titleTextStyle: const TextStyle(
+    color: Colors.black,
+    fontSize: 26,
+    fontWeight: FontWeight.w600,
+  ),
         title: const Text(
           
           "Главная",
@@ -311,7 +341,7 @@ class _AdminHomeState extends State<AdminHome> {
   ],
       ),
    bottomNavigationBar: Padding(
-  padding: const EdgeInsets.only(bottom: 16, left: 24, right: 24),
+  padding: const EdgeInsets.only(bottom: 16),
   child: Container(
     decoration: BoxDecoration(
       color: Colors.white,
@@ -335,15 +365,20 @@ class _AdminHomeState extends State<AdminHome> {
         selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
         elevation: 0,
-        onTap: (newIndex) {
-          setState(() => _currentIndex = newIndex);
-          if (newIndex == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const MessagePage()),
-            );
-          }
-        },
+        onTap: (newIndex) async {
+  if (newIndex == 1) {
+    setState(() => _currentIndex = 1);
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const MessagePage()),
+    );
+    // Вернулись назад – сбросим обратно на 0 (Главная)
+    setState(() => _currentIndex = 0);
+  } else {
+    setState(() => _currentIndex = newIndex);
+  }
+},
+
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_outlined),
@@ -392,7 +427,7 @@ class _AdminHomeState extends State<AdminHome> {
                   itemBuilder: (context, index) {
                     final item = _filteredItems[index];
                     return InkWell(
-                      onTap: () => _showCallSheet(context, item["key_name"] ?? ""),
+                    onTap: () => _showCallDialog(context, item["key_name"] ?? ""),
                       child: _buildItemCard(item),
                     );
                   },

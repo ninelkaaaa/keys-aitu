@@ -144,7 +144,6 @@ Future<void> _fetchPendingRequests() async {
         // Показывать только "На сдачу"
         return allRequests.where((msg) => !msg.isReceive).toList();
       case MessageFilter.all:
-      default:
         return allRequests;
     }
   }
@@ -186,7 +185,7 @@ Future<void> _fetchPendingRequests() async {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Уведомления (Запросы)'),
+        title: const Text('Уведомления'),
         centerTitle: true,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -201,24 +200,56 @@ Future<void> _fetchPendingRequests() async {
           ),
         ],
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : errorMessage.isNotEmpty
-              ? Center(child: Text(errorMessage, style: const TextStyle(color: Colors.red)))
-              : AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  transitionBuilder: (child, animation) {
-                    return FadeTransition(opacity: animation, child: child);
+     body: isLoading
+    ? const Center(child: CircularProgressIndicator())
+    : errorMessage.isNotEmpty
+        ? Center(
+            child: Text(
+              errorMessage,
+              style: const TextStyle(color: Colors.red),
+            ),
+          )
+        : filteredMessages.isEmpty
+            ? const Center(
+               child: Column(
+  mainAxisAlignment: MainAxisAlignment.center,
+  crossAxisAlignment: CrossAxisAlignment.center,
+  children: [
+    const Icon(Icons.notifications_none, size: 60, color: Colors.grey),
+    const SizedBox(height: 16),
+    const Text(
+      "Нет новых запросов",
+      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black54),
+    ),
+    const SizedBox(height: 8),
+    const Padding(
+      padding: EdgeInsets.symmetric(horizontal: 32),
+      child: Text(
+        "Все запросы на получение и сдачу ключей будут отображаться здесь. "
+        "Как только появятся новые — вы увидите их в этом списке.",
+        style: TextStyle(fontSize: 16, color: Colors.grey),
+        textAlign: TextAlign.center,
+      ),
+    ),
+  ],
+),
+
+              )
+            : AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                transitionBuilder: (child, animation) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                child: ListView.builder(
+                  key: ValueKey(selectedFilter),
+                  itemCount: filteredMessages.length,
+                  itemBuilder: (context, index) {
+                    final req = filteredMessages[index];
+                    return _buildRequestCard(req);
                   },
-                  child: ListView.builder(
-                    key: ValueKey(selectedFilter),
-                    itemCount: filteredMessages.length,
-                    itemBuilder: (context, index) {
-                      final req = filteredMessages[index];
-                      return _buildRequestCard(req);
-                    },
-                  ),
                 ),
+              ),
+
     );
   }
 
