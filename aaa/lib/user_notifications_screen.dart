@@ -18,52 +18,48 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   bool isLoading = false;
   int selectedTab = 0;
 
-  final String baseUrl = "https://backaitu.onrender.com";
-@override
-void initState() {
-  super.initState();
-  _saveOpenedTime();
-  setState(() => isLoading = true); // показываем лоадер
+  final String baseUrl = "http://10.250.0.19:3000";
+  @override
+  void initState() {
+    super.initState();
+    _saveOpenedTime();
+    setState(() => isLoading = true); // показываем лоадер
 
-  Future.wait([
-    _fetchHistory(),
-    _fetchTransferRequests(),
-  ]).then((_) {
-    if (mounted) {
-      setState(() => isLoading = false); // безопасный вызов
-    }
-  });
-}
-
-
+    Future.wait([_fetchHistory(), _fetchTransferRequests()]).then((_) {
+      if (mounted) {
+        setState(() => isLoading = false); // безопасный вызов
+      }
+    });
+  }
 
   Future<void> _saveOpenedTime() async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setString("last_seen_history_${widget.userId}", DateTime.now().toIso8601String());
+    prefs.setString(
+      "last_seen_history_${widget.userId}",
+      DateTime.now().toIso8601String(),
+    );
   }
-Future<void> _fetchHistory() async {
-  try {
-    final response = await http.get(Uri.parse("$baseUrl/key-history"));
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final allHistory = data['history'] as List<dynamic>;
-      final filtered = allHistory
-          .where((e) => e['user_id'] == widget.userId)
-          .toList()
-        ..sort((a, b) => b["timestamp"].compareTo(a["timestamp"]));
 
-      if (!mounted) return; // 🛑 проверка перед setState
-      setState(() => userHistory = filtered);
+  Future<void> _fetchHistory() async {
+    try {
+      final response = await http.get(Uri.parse("$baseUrl/key-history"));
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final allHistory = data['history'] as List<dynamic>;
+        final filtered =
+            allHistory.where((e) => e['user_id'] == widget.userId).toList()
+              ..sort((a, b) => b["timestamp"].compareTo(a["timestamp"]));
+
+        if (!mounted) return; // 🛑 проверка перед setState
+        setState(() => userHistory = filtered);
+      }
+    } catch (_) {
+      if (!mounted) return; // 🛑 защита
+      setState(() {
+        isLoading = false;
+      });
     }
-  } catch (_) {
-    if (!mounted) return; // 🛑 защита
-    setState(() {
-      isLoading = false;
-    });
   }
-}
-
-
 
   Future<void> _fetchTransferRequests() async {
     try {
@@ -118,7 +114,9 @@ Future<void> _fetchHistory() async {
                 duration: const Duration(milliseconds: 200),
                 padding: const EdgeInsets.symmetric(vertical: 10),
                 decoration: BoxDecoration(
-                  color: selected ? const Color(0xFF2E70E8) : Colors.transparent,
+                  color: selected
+                      ? const Color(0xFF2E70E8)
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
@@ -149,12 +147,13 @@ Future<void> _fetchHistory() async {
         final toUser = item["to_user_name"];
         final requestId = item["id"];
         return Card(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           elevation: 2,
-          color: Colors.white,         
+          color: Colors.white,
 
           child: ListTile(
-            
             title: Text("Пользователь $toUser просит ключ $keyName"),
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
@@ -192,7 +191,7 @@ Future<void> _fetchHistory() async {
           "return" => "Вы сдали ключ $keyName",
           "transfer" => "Вы передали ключ $keyName",
           "denied" => "Запрос на $keyName отклонен",
-          _ => "Неизвестное действие: $action"
+          _ => "Неизвестное действие: $action",
         };
 
         return ListTile(
@@ -211,16 +210,21 @@ Future<void> _fetchHistory() async {
         if (transferRequests.isNotEmpty) ...[
           const Padding(
             padding: EdgeInsets.only(bottom: 8),
-            child: Text("🔁 Запросы на передачу", style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(
+              "🔁 Запросы на передачу",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
           ),
           ...transferRequests.map((item) {
             final keyName = item["key_name"];
             final toUser = item["to_user_name"];
             final requestId = item["id"];
             return Card(
-                                    color: Colors.white,         
+              color: Colors.white,
 
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
               child: ListTile(
                 title: Text("Пользователь $toUser просит ключ $keyName"),
                 trailing: Row(
@@ -232,7 +236,8 @@ Future<void> _fetchHistory() async {
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.red),
-                      onPressed: () => _handleTransferDecision(requestId, false),
+                      onPressed: () =>
+                          _handleTransferDecision(requestId, false),
                     ),
                   ],
                 ),
@@ -253,7 +258,7 @@ Future<void> _fetchHistory() async {
             "return" => "Вы сдали ключ $keyName",
             "transfer" => "Вы передали ключ $keyName",
             "denied" => "Запрос на $keyName отклонен",
-            _ => "Неизвестное действие: $action"
+            _ => "Неизвестное действие: $action",
           };
 
           return ListTile(
@@ -286,7 +291,11 @@ Future<void> _fetchHistory() async {
       body: Column(
         children: [
           _buildSegmentedTabs(),
-          Expanded(child: isLoading ? const Center(child: CircularProgressIndicator()) : bodyContent),
+          Expanded(
+            child: isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : bodyContent,
+          ),
         ],
       ),
     );

@@ -8,10 +8,10 @@ enum ActionStatus { pending, confirmed, cancelled }
 
 class PendingRequest {
   final int historyId;
-  final String title; 
-  final String room;  
-  final String time; 
-  final bool isReceive; 
+  final String title;
+  final String room;
+  final String time;
+  final bool isReceive;
   ActionStatus status;
 
   PendingRequest({
@@ -24,7 +24,7 @@ class PendingRequest {
   });
 }
 
-// 
+//
 enum MessageFilter { all, received, returned }
 
 class MessagePage extends StatefulWidget {
@@ -37,7 +37,7 @@ class MessagePage extends StatefulWidget {
 class _MessagePageState extends State<MessagePage> {
   MessageFilter selectedFilter = MessageFilter.all;
 
-  final String baseUrl = "https://backaitu.onrender.com";
+  final String baseUrl = "http://10.250.0.19:3000";
 
   List<PendingRequest> allRequests = [];
   bool isLoading = false;
@@ -48,59 +48,62 @@ class _MessagePageState extends State<MessagePage> {
     super.initState();
     _fetchPendingRequests();
   }
-Future<void> _fetchPendingRequests() async {
-  setState(() => isLoading = true);
-  try {
-    final url = Uri.parse("$baseUrl/pending-requests");
-    final response = await http.get(url);
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      if (data['status'] == 'success') {
-        final List reqs = data['requests'];
-        final temp = reqs.map<PendingRequest>((item) {
-          final hId   = item['history_id'] as int;
-          final kName = item['key_name']   as String? ?? '???';
-          final user  = item['user_name']  as String? ?? '???';
-          final ts    = item['timestamp']  as String? ?? '...';
-          final act   = item['action']     as String? ?? 'request';
+  Future<void> _fetchPendingRequests() async {
+    setState(() => isLoading = true);
+    try {
+      final url = Uri.parse("$baseUrl/pending-requests");
+      final response = await http.get(url);
 
-          final isReceive = act == 'request';        
-          final title = isReceive
-              ? "Подтвердить получение ключа от $user?"
-              : "Подтвердить сдачу ключа от $user?";
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data['status'] == 'success') {
+          final List reqs = data['requests'];
+          final temp = reqs.map<PendingRequest>((item) {
+            final hId = item['history_id'] as int;
+            final kName = item['key_name'] as String? ?? '???';
+            final user = item['user_name'] as String? ?? '???';
+            final ts = item['timestamp'] as String? ?? '...';
+            final act = item['action'] as String? ?? 'request';
 
-          return PendingRequest(
-            historyId : hId,
-            title     : title,
-            room      : kName,
-            time      : ts,
-            isReceive : isReceive,
+            final isReceive = act == 'request';
+            final title = isReceive
+                ? "Подтвердить получение ключа от $user?"
+                : "Подтвердить сдачу ключа от $user?";
+
+            return PendingRequest(
+              historyId: hId,
+              title: title,
+              room: kName,
+              time: ts,
+              isReceive: isReceive,
+            );
+          }).toList();
+
+          setState(() {
+            allRequests = temp;
+            errorMessage = '';
+          });
+        } else {
+          setState(
+            () => errorMessage = data['message'] ?? "Неизвестная ошибка",
           );
-        }).toList();
-
-        setState(() {
-          allRequests  = temp;
-          errorMessage = '';
-        });
+        }
       } else {
-        setState(() => errorMessage = data['message'] ?? "Неизвестная ошибка");
+        setState(() => errorMessage = "Ошибка сервера: ${response.statusCode}");
       }
-    } else {
-      setState(() => errorMessage = "Ошибка сервера: ${response.statusCode}");
+    } catch (e) {
+      setState(() => errorMessage = "Сетевая ошибка: $e");
+    } finally {
+      setState(() => isLoading = false);
     }
-  } catch (e) {
-    setState(() => errorMessage = "Сетевая ошибка: $e");
-  } finally {
-    setState(() => isLoading = false);
   }
-}
 
   Future<void> _approveRequest(int historyId) async {
     final url = Uri.parse("$baseUrl/approve-request");
     final response = await http.post(
       url,
-      headers: {"Content-Type":"application/json"},
+      headers: {"Content-Type": "application/json"},
       body: jsonEncode({"history_id": historyId}),
     );
     if (response.statusCode == 200) {
@@ -111,7 +114,7 @@ Future<void> _fetchPendingRequests() async {
     } else {
       final err = jsonDecode(response.body);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(err["message"] ?? "Ошибка одобрения"))
+        SnackBar(content: Text(err["message"] ?? "Ошибка одобрения")),
       );
     }
   }
@@ -120,7 +123,7 @@ Future<void> _fetchPendingRequests() async {
     final url = Uri.parse("$baseUrl/deny-request");
     final response = await http.post(
       url,
-      headers: {"Content-Type":"application/json"},
+      headers: {"Content-Type": "application/json"},
       body: jsonEncode({"history_id": historyId}),
     );
     if (response.statusCode == 200) {
@@ -130,7 +133,7 @@ Future<void> _fetchPendingRequests() async {
     } else {
       final err = jsonDecode(response.body);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(err["message"] ?? "Ошибка отклонения"))
+        SnackBar(content: Text(err["message"] ?? "Ошибка отклонения")),
       );
     }
   }
@@ -161,8 +164,8 @@ Future<void> _fetchPendingRequests() async {
                   filter == MessageFilter.all
                       ? 'Все'
                       : filter == MessageFilter.returned
-                          ? 'На сдачу'
-                          : 'На получение',
+                      ? 'На сдачу'
+                      : 'На получение',
                 ),
                 trailing: selectedFilter == filter
                     ? const Icon(Icons.check, color: Colors.blue)
@@ -200,62 +203,70 @@ Future<void> _fetchPendingRequests() async {
           ),
         ],
       ),
-     body: isLoading
-    ? const Center(child: CircularProgressIndicator())
-    : errorMessage.isNotEmpty
-        ? Center(
-            child: Text(
-              errorMessage,
-              style: const TextStyle(color: Colors.red),
-            ),
-          )
-        : filteredMessages.isEmpty
-            ? const Center(
-               child: Column(
-  mainAxisAlignment: MainAxisAlignment.center,
-  crossAxisAlignment: CrossAxisAlignment.center,
-  children: [
-    const Icon(Icons.notifications_none, size: 60, color: Colors.grey),
-    const SizedBox(height: 16),
-    const Text(
-      "Нет новых запросов",
-      style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black54),
-    ),
-    const SizedBox(height: 8),
-    const Padding(
-      padding: EdgeInsets.symmetric(horizontal: 32),
-      child: Text(
-        "Все запросы на получение и сдачу ключей будут отображаться здесь. "
-        "Как только появятся новые — вы увидите их в этом списке.",
-        style: TextStyle(fontSize: 16, color: Colors.grey),
-        textAlign: TextAlign.center,
-      ),
-    ),
-  ],
-),
-
-              )
-            : AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                transitionBuilder: (child, animation) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-                child: ListView.builder(
-                  key: ValueKey(selectedFilter),
-                  itemCount: filteredMessages.length,
-                  itemBuilder: (context, index) {
-                    final req = filteredMessages[index];
-                    return _buildRequestCard(req);
-                  },
-                ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : errorMessage.isNotEmpty
+          ? Center(
+              child: Text(
+                errorMessage,
+                style: const TextStyle(color: Colors.red),
               ),
-
+            )
+          : filteredMessages.isEmpty
+          ? const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.notifications_none,
+                    size: 60,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Нет новых запросов",
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 32),
+                    child: Text(
+                      "Все запросы на получение и сдачу ключей будут отображаться здесь. "
+                      "Как только появятся новые — вы увидите их в этом списке.",
+                      style: TextStyle(fontSize: 16, color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          : AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              child: ListView.builder(
+                key: ValueKey(selectedFilter),
+                itemCount: filteredMessages.length,
+                itemBuilder: (context, index) {
+                  final req = filteredMessages[index];
+                  return _buildRequestCard(req);
+                },
+              ),
+            ),
     );
   }
 
   Widget _buildRequestCard(PendingRequest req) {
     return Container(
-      color: req.status == ActionStatus.pending ? const Color(0xFFEDF3FF) : Colors.white,
+      color: req.status == ActionStatus.pending
+          ? const Color(0xFFEDF3FF)
+          : Colors.white,
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,12 +322,18 @@ Future<void> _fetchPendingRequests() async {
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF2E70E8),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text("Да", style: TextStyle(fontSize: 16, color: Colors.white)),
+                    child: const Text(
+                      "Да",
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
                   ),
                   const SizedBox(width: 8),
                   OutlinedButton(
@@ -326,7 +343,10 @@ Future<void> _fetchPendingRequests() async {
                     },
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Color(0xFF2E70E8)),
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),

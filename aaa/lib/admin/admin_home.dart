@@ -17,7 +17,7 @@ class AdminHome extends StatefulWidget {
 class _AdminHomeState extends State<AdminHome> {
   int _currentIndex = 0;
 
-  final String baseUrl = "https://backaitu.onrender.com";
+  final String baseUrl = "http://10.250.0.19:3000";
 
   String _searchQuery = '';
   String _selectedFilter = 'all';
@@ -32,7 +32,6 @@ class _AdminHomeState extends State<AdminHome> {
     _fetchKeysFromServer();
   }
 
-
   Future<void> _fetchKeysFromServer() async {
     setState(() => isLoading = true);
     try {
@@ -44,7 +43,7 @@ class _AdminHomeState extends State<AdminHome> {
         if (data['status'] == 'success') {
           // data['keys'] – список ключей
           setState(() {
-            keysList = data['keys'];  
+            keysList = data['keys'];
             errorMessage = '';
           });
         } else {
@@ -73,94 +72,100 @@ class _AdminHomeState extends State<AdminHome> {
 
       bool isAvailable = item["available"] == true;
 
-      bool matchesFilter = _selectedFilter == 'all'
-          || (_selectedFilter == 'returned' && !isAvailable)
-          || (_selectedFilter == 'received' && isAvailable);
+      bool matchesFilter =
+          _selectedFilter == 'all' ||
+          (_selectedFilter == 'returned' && !isAvailable) ||
+          (_selectedFilter == 'received' && isAvailable);
 
       return matchesSearch && matchesFilter;
     }).toList();
-  }void _showFilterSheet() {
-  showModalBottomSheet(
-    context: context,
-    backgroundColor: const Color(0xFFF9F9F9), // светло-серый фон
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (_) {
-      final options = {
-        'all': 'Все',
-        'received': 'Доступен',
-        'returned': 'Не доступен (выдан)',
-      };
+  }
 
-      return Padding(
-        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text(
-              'Фильтр по статусу',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF1C1C1E),
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFFF9F9F9), // светло-серый фон
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        final options = {
+          'all': 'Все',
+          'received': 'Доступен',
+          'returned': 'Не доступен (выдан)',
+        };
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Фильтр по статусу',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1C1C1E),
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
-            ...options.entries.map((entry) {
-              final isSelected = _selectedFilter == entry.key;
+              const SizedBox(height: 16),
+              ...options.entries.map((entry) {
+                final isSelected = _selectedFilter == entry.key;
 
-              return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 6),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  onTap: () {
-                    setState(() => _selectedFilter = entry.key);
-                    Navigator.pop(context);
-                  },
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? const Color(0xFFE3EFFE) // светло-синий при выборе
-                          : Colors.transparent,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                        vertical: 14, horizontal: 12),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            entry.value,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight:
-                                  isSelected ? FontWeight.bold : FontWeight.normal,
-                              color: isSelected
-                                  ? const Color(0xFF1D5DCC) // строгий синий
-                                  : const Color(0xFF3C3C3C),
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () {
+                      setState(() => _selectedFilter = entry.key);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? const Color(0xFFE3EFFE) // светло-синий при выборе
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 12,
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              entry.value,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: isSelected
+                                    ? const Color(0xFF1D5DCC) // строгий синий
+                                    : const Color(0xFF3C3C3C),
+                              ),
                             ),
                           ),
-                        ),
-                        if (isSelected)
-                          const Icon(Icons.check,
-                              color: Color(0xFF1D5DCC), size: 20),
-                      ],
+                          if (isSelected)
+                            const Icon(
+                              Icons.check,
+                              color: Color(0xFF1D5DCC),
+                              size: 20,
+                            ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              );
-            }).toList(),
-            const SizedBox(height: 8),
-          ],
-          
-        ),
-      );
-    },
-  );
-}
-
-
+                );
+              }).toList(),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   void _makePhoneCall(String phoneNumber) async {
     final Uri url = Uri(scheme: 'tel', path: phoneNumber);
@@ -169,78 +174,89 @@ class _AdminHomeState extends State<AdminHome> {
     } else {
       throw 'Could not launch $phoneNumber';
     }
-  }void _showCallDialog(BuildContext context, String title) {
-  showGeneralDialog(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: "Call Dialog",
-    transitionDuration: const Duration(milliseconds: 300),
-    pageBuilder: (context, animation, secondaryAnimation) {
-      return Center(
-        child: Material(
-          color: Colors.transparent,
-          child: Container(
-            margin: const EdgeInsets.symmetric(horizontal: 24),
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: Colors.white, // белый фон
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 20,
-                  offset: Offset(0, 8),
-                )
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 8),
-                const Text('Учитель: Петров П.П', style: TextStyle(fontSize: 16)),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _makePhoneCall('+7710504939'),
-                    icon: const Icon(Icons.phone),
-                    label: const Text('Позвонить'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2E70E8), // синий
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+  }
+
+  void _showCallDialog(BuildContext context, String title) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: true,
+      barrierLabel: "Call Dialog",
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Center(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              margin: const EdgeInsets.symmetric(horizontal: 24),
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: Colors.white, // белый фон
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 20,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Учитель: Петров П.П',
+                    style: TextStyle(fontSize: 16),
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _makePhoneCall('+7710504939'),
+                      icon: const Icon(Icons.phone),
+                      label: const Text('Позвонить'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2E70E8), // синий
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      );
-    },
-    transitionBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(
-        opacity: animation,
-        child: ScaleTransition(
-          scale: CurvedAnimation(parent: animation, curve: Curves.easeOutBack),
-          child: child,
-        ),
-      );
-    },
-  );
-}
-
-
+        );
+      },
+      transitionBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(
+          opacity: animation,
+          child: ScaleTransition(
+            scale: CurvedAnimation(
+              parent: animation,
+              curve: Curves.easeOutBack,
+            ),
+            child: child,
+          ),
+        );
+      },
+    );
+  }
 
   Widget _buildItemCard(dynamic item) {
-  
     bool isAvailable = item["available"] == true;
     return Card(
       color: Colors.white,
@@ -248,9 +264,7 @@ class _AdminHomeState extends State<AdminHome> {
       margin: const EdgeInsets.only(bottom: 12),
       child: Container(
         height: 75,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
         child: Row(
           children: [
             Container(
@@ -263,7 +277,7 @@ class _AdminHomeState extends State<AdminHome> {
                 ),
               ),
             ),
-          
+
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -289,7 +303,7 @@ class _AdminHomeState extends State<AdminHome> {
                       Text(
                         "Доступен",
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      )
+                      ),
                   ],
                 ),
               ),
@@ -318,13 +332,12 @@ class _AdminHomeState extends State<AdminHome> {
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black),
-         titleTextStyle: const TextStyle(
-    color: Colors.black,
-    fontSize: 26,
-    fontWeight: FontWeight.w600,
-  ),
+        titleTextStyle: const TextStyle(
+          color: Colors.black,
+          fontSize: 26,
+          fontWeight: FontWeight.w600,
+        ),
         title: const Text(
-          
           "Главная",
           style: TextStyle(
             color: Colors.black,
@@ -333,82 +346,82 @@ class _AdminHomeState extends State<AdminHome> {
           ),
         ),
         actions: [
-   IconButton(
-  icon: const Icon(Icons.logout),
-  tooltip: "Выход",
-  onPressed: () => _confirmLogout(context),
-),
-  ],
-      ),
-   bottomNavigationBar: Padding(
-  padding: const EdgeInsets.only(bottom: 16),
-  child: Container(
-    decoration: BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(30),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.black12.withOpacity(0.1),
-          blurRadius: 12,
-          offset: const Offset(0, 4),
-        ),
-      ],
-    ),
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(30),
-      child: BottomNavigationBar(
-        backgroundColor: Colors.white,
-        currentIndex: _currentIndex,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF2F80ED), 
-        unselectedItemColor: Colors.grey,
-        selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.normal),
-        elevation: 0,
-        onTap: (newIndex) async {
-  if (newIndex == 1) {
-    setState(() => _currentIndex = 1);
-    await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const MessagePage()),
-    );
-    // Вернулись назад – сбросим обратно на 0 (Главная)
-    setState(() => _currentIndex = 0);
-  } else {
-    setState(() => _currentIndex = newIndex);
-  }
-},
-
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: "Главная",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.mail_outline),
-            activeIcon: Icon(Icons.mail),
-            label: "Сообщения",
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: "Выход",
+            onPressed: () => _confirmLogout(context),
           ),
         ],
       ),
-    ),
-  ),
-),
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(30),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12.withOpacity(0.1),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(30),
+            child: BottomNavigationBar(
+              backgroundColor: Colors.white,
+              currentIndex: _currentIndex,
+              type: BottomNavigationBarType.fixed,
+              selectedItemColor: const Color(0xFF2F80ED),
+              unselectedItemColor: Colors.grey,
+              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.normal,
+              ),
+              elevation: 0,
+              onTap: (newIndex) async {
+                if (newIndex == 1) {
+                  setState(() => _currentIndex = 1);
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const MessagePage()),
+                  );
+                  // Вернулись назад – сбросим обратно на 0 (Главная)
+                  setState(() => _currentIndex = 0);
+                } else {
+                  setState(() => _currentIndex = newIndex);
+                }
+              },
 
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.home_outlined),
+                  activeIcon: Icon(Icons.home),
+                  label: "Главная",
+                ),
+                BottomNavigationBarItem(
+                  icon: Icon(Icons.mail_outline),
+                  activeIcon: Icon(Icons.mail),
+                  label: "Сообщения",
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
 
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           children: [
-             SearchAndFilter(
+            SearchAndFilter(
               searchQuery: _searchQuery,
               onSearchChanged: (val) {
                 setState(() => _searchQuery = val);
               },
               onFilterPressed: _showFilterSheet,
             ),
-    
 
             const SizedBox(height: 16),
 
@@ -417,7 +430,10 @@ class _AdminHomeState extends State<AdminHome> {
             else if (errorMessage.isNotEmpty)
               Expanded(
                 child: Center(
-                  child: Text(errorMessage, style: const TextStyle(color: Colors.red)),
+                  child: Text(
+                    errorMessage,
+                    style: const TextStyle(color: Colors.red),
+                  ),
                 ),
               )
             else
@@ -427,21 +443,21 @@ class _AdminHomeState extends State<AdminHome> {
                   itemBuilder: (context, index) {
                     final item = _filteredItems[index];
                     return InkWell(
-                    onTap: () => _showCallDialog(context, item["key_name"] ?? ""),
+                      onTap: () =>
+                          _showCallDialog(context, item["key_name"] ?? ""),
                       child: _buildItemCard(item),
                     );
                   },
                 ),
               ),
-
-           
           ],
         ),
       ),
     );
   }
-  
-}Future<void> _confirmLogout(BuildContext context) async {
+}
+
+Future<void> _confirmLogout(BuildContext context) async {
   final shouldLogout = await showDialog<bool>(
     context: context,
     barrierDismissible: false, // нельзя закрыть тапом вне окна
@@ -456,10 +472,7 @@ class _AdminHomeState extends State<AdminHome> {
             const SizedBox(height: 16),
             const Text(
               "Подтвердите выход",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 12),
             const Text(
@@ -500,7 +513,7 @@ class _AdminHomeState extends State<AdminHome> {
                   ),
                 ),
               ],
-            )
+            ),
           ],
         ),
       ),
