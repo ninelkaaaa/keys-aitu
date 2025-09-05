@@ -37,7 +37,7 @@ class MessagePage extends StatefulWidget {
 class _MessagePageState extends State<MessagePage> {
   MessageFilter selectedFilter = MessageFilter.all;
 
-  final String baseUrl = "http://10.250.0.19:3000";
+  final String baseUrl = "http://10.250.0.19:5000";
 
   List<PendingRequest> allRequests = [];
   bool isLoading = false;

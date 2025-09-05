@@ -17,7 +17,7 @@ class AdminHome extends StatefulWidget {
 class _AdminHomeState extends State<AdminHome> {
   int _currentIndex = 0;
 
-  final String baseUrl = "http://10.250.0.19:3000";
+  final String baseUrl = "http://10.250.0.19:5000";
 
   String _searchQuery = '';
   String _selectedFilter = 'all';

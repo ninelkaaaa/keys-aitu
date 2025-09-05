@@ -18,7 +18,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   bool isLoading = false;
   int selectedTab = 0;
 
-  final String baseUrl = "http://10.250.0.19:3000";
+  final String baseUrl = "http://10.250.0.19:5000";
   @override
   void initState() {
     super.initState();
