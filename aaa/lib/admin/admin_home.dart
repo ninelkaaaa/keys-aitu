@@ -16,7 +16,6 @@ class AdminHome extends StatefulWidget {
 
 class _AdminHomeState extends State<AdminHome> {
   int _currentIndex = 0;
-
   final String baseUrl = "http://10.250.0.19:5000";
 
   String _searchQuery = '';
@@ -35,15 +34,14 @@ class _AdminHomeState extends State<AdminHome> {
   Future<void> _fetchKeysFromServer() async {
     setState(() => isLoading = true);
     try {
-      final url = Uri.parse('$baseUrl/keys');
+      final url = Uri.parse('$baseUrl/users');
       final response = await http.get(url);
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          // data['keys'] – список ключей
           setState(() {
-            keysList = data['keys'];
+            keysList = data['users'];
             errorMessage = '';
           });
         } else {
@@ -81,102 +79,17 @@ class _AdminHomeState extends State<AdminHome> {
     }).toList();
   }
 
-  void _showFilterSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFFF9F9F9), // светло-серый фон
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) {
-        final options = {
-          'all': 'Все',
-          'received': 'Доступен',
-          'returned': 'Не доступен (выдан)',
-        };
-
-        return Padding(
-          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Фильтр по статусу',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1C1C1E),
-                ),
-              ),
-              const SizedBox(height: 16),
-              ...options.entries.map((entry) {
-                final isSelected = _selectedFilter == entry.key;
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 6),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () {
-                      setState(() => _selectedFilter = entry.key);
-                      Navigator.pop(context);
-                    },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFFE3EFFE) // светло-синий при выборе
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 14,
-                        horizontal: 12,
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              entry.value,
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                color: isSelected
-                                    ? const Color(0xFF1D5DCC) // строгий синий
-                                    : const Color(0xFF3C3C3C),
-                              ),
-                            ),
-                          ),
-                          if (isSelected)
-                            const Icon(
-                              Icons.check,
-                              color: Color(0xFF1D5DCC),
-                              size: 20,
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }).toList(),
-              const SizedBox(height: 8),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
   void _makePhoneCall(String phoneNumber) async {
     final Uri url = Uri(scheme: 'tel', path: phoneNumber);
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
     } else {
-      throw 'Could not launch $phoneNumber';
+      throw 'Не удалось запустить вызов: $phoneNumber';
     }
   }
 
-  void _showCallDialog(BuildContext context, String title) {
+
+  void _showCallDialog(BuildContext context, String title, String teacherName, String phoneNumber) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -190,7 +103,7 @@ class _AdminHomeState extends State<AdminHome> {
               margin: const EdgeInsets.symmetric(horizontal: 24),
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: Colors.white, // белый фон
+                color: Colors.white,
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
@@ -211,19 +124,19 @@ class _AdminHomeState extends State<AdminHome> {
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    'Учитель: Петров П.П',
-                    style: TextStyle(fontSize: 16),
+                  Text(
+                    'Учитель: $teacherName',
+                    style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton.icon(
-                      onPressed: () => _makePhoneCall('+7710504939'),
+                      onPressed: () => _makePhoneCall(phoneNumber),
                       icon: const Icon(Icons.phone),
-                      label: const Text('Позвонить'),
+                      label: Text('Позвонить: $phoneNumber'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF2E70E8), // синий
+                        backgroundColor: const Color(0xFF2E70E8),
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           horizontal: 24,
@@ -256,8 +169,81 @@ class _AdminHomeState extends State<AdminHome> {
     );
   }
 
+  void _showFilterSheet() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFFF9F9F9),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) {
+        final options = {
+          'all': 'Все',
+          'received': 'Доступен',
+          'returned': 'Не доступен (выдан)',
+        };
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Фильтр по статусу',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF1C1C1E),
+                ),
+              ),
+              const SizedBox(height: 16),
+              ...options.entries.map((entry) {
+                final isSelected = _selectedFilter == entry.key;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 6),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () {
+                      setState(() => _selectedFilter = entry.key);
+                      Navigator.pop(context);
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: isSelected ? const Color(0xFFE3EFFE) : Colors.transparent,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              entry.value,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                color: isSelected ? const Color(0xFF1D5DCC) : const Color(0xFF3C3C3C),
+                              ),
+                            ),
+                          ),
+                          if (isSelected)
+                            const Icon(Icons.check, color: Color(0xFF1D5DCC), size: 20),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildItemCard(dynamic item) {
     bool isAvailable = item["available"] == true;
+
     return Card(
       color: Colors.white,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -277,7 +263,6 @@ class _AdminHomeState extends State<AdminHome> {
                 ),
               ),
             ),
-
             Expanded(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -286,7 +271,7 @@ class _AdminHomeState extends State<AdminHome> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      item["key_name"] ?? "",
+                      item["key_name"] ?? "Без названия",
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -302,12 +287,26 @@ class _AdminHomeState extends State<AdminHome> {
                     else
                       Text(
                         "Доступен",
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: 14, color: Colors.grey
+                        ),
                       ),
                   ],
                 ),
               ),
             ),
+
+            // Кнопка звонка, если ключ выдан
+            if (!isAvailable)
+              IconButton(
+                icon: const Icon(Icons.phone, color: Colors.blue),
+                onPressed: () {
+                  final teacherName = item['last_user'] ?? 'Неизвестно';
+                  final phoneNumber = item['phone'] ?? '+77000000000';
+                  _showCallDialog(context, item["key_name"] ?? "", teacherName, phoneNumber);
+                },
+              ),
+
+            // Индикатор доступности
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Container(
@@ -324,143 +323,83 @@ class _AdminHomeState extends State<AdminHome> {
       ),
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black),
-        titleTextStyle: const TextStyle(
-          color: Colors.black,
-          fontSize: 26,
-          fontWeight: FontWeight.w600,
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    bottomNavigationBar: BottomNavigationBar(
+      currentIndex: _currentIndex,
+      onTap: (index) {
+        setState(() => _currentIndex = index);
+        if (index == 1) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const MessagePage()),
+          );
+        }
+      },
+      items: const [
+        BottomNavigationBarItem(
+          icon: Icon(Icons.home_outlined),
+          activeIcon: Icon(Icons.home),
+          label: "Главная",
         ),
-        title: const Text(
-          "Главная",
-          style: TextStyle(
-            color: Colors.black,
-            fontSize: 26,
-            fontWeight: FontWeight.w600,
-          ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.mail_outline),
+          activeIcon: Icon(Icons.mail),
+          label: "Сообщения",
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: "Выход",
-            onPressed: () => _confirmLogout(context),
+      ],
+    ),
+    body: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Column(
+        children: [
+          SearchAndFilter(
+            searchQuery: _searchQuery,
+            onSearchChanged: (val) {
+              setState(() => _searchQuery = val);
+            },
+            onFilterPressed: _showFilterSheet,
           ),
+          const SizedBox(height: 16),
+          if (isLoading)
+            const Expanded(child: Center(child: CircularProgressIndicator()))
+          else if (errorMessage.isNotEmpty)
+            Expanded(
+              child: Center(
+                child: Text(
+                  errorMessage,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ),
+            )
+          else
+            Expanded(
+              child: ListView.builder(
+                itemCount: _filteredItems.length,
+                itemBuilder: (context, index) {
+                  final item = _filteredItems[index];
+                  print('Item contents: $item');
+                  return InkWell(
+                    onTap: () {
+                      final teacherName = item['last_user'] ?? 'Неизвестно';
+                      final phoneNumber = item['phone'] ?? '+77000000000';
+                      _showCallDialog(context, item["key_name"] ?? "", teacherName, phoneNumber);
+                    },
+                    child: _buildItemCard(item),
+                  );
+                },
+              ),
+            ),
         ],
       ),
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom: 16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12.withOpacity(0.1),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(30),
-            child: BottomNavigationBar(
-              backgroundColor: Colors.white,
-              currentIndex: _currentIndex,
-              type: BottomNavigationBarType.fixed,
-              selectedItemColor: const Color(0xFF2F80ED),
-              unselectedItemColor: Colors.grey,
-              selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-              unselectedLabelStyle: const TextStyle(
-                fontWeight: FontWeight.normal,
-              ),
-              elevation: 0,
-              onTap: (newIndex) async {
-                if (newIndex == 1) {
-                  setState(() => _currentIndex = 1);
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const MessagePage()),
-                  );
-                  // Вернулись назад – сбросим обратно на 0 (Главная)
-                  setState(() => _currentIndex = 0);
-                } else {
-                  setState(() => _currentIndex = newIndex);
-                }
-              },
-
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home_outlined),
-                  activeIcon: Icon(Icons.home),
-                  label: "Главная",
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.mail_outline),
-                  activeIcon: Icon(Icons.mail),
-                  label: "Сообщения",
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Column(
-          children: [
-            SearchAndFilter(
-              searchQuery: _searchQuery,
-              onSearchChanged: (val) {
-                setState(() => _searchQuery = val);
-              },
-              onFilterPressed: _showFilterSheet,
-            ),
-
-            const SizedBox(height: 16),
-
-            if (isLoading)
-              const Expanded(child: Center(child: CircularProgressIndicator()))
-            else if (errorMessage.isNotEmpty)
-              Expanded(
-                child: Center(
-                  child: Text(
-                    errorMessage,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-              )
-            else
-              Expanded(
-                child: ListView.builder(
-                  itemCount: _filteredItems.length,
-                  itemBuilder: (context, index) {
-                    final item = _filteredItems[index];
-                    return InkWell(
-                      onTap: () =>
-                          _showCallDialog(context, item["key_name"] ?? ""),
-                      child: _buildItemCard(item),
-                    );
-                  },
-                ),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
+    ),
+  );
 }
-
 Future<void> _confirmLogout(BuildContext context) async {
   final shouldLogout = await showDialog<bool>(
     context: context,
-    barrierDismissible: false, // нельзя закрыть тапом вне окна
+    barrierDismissible: false,
     builder: (context) => Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       backgroundColor: Colors.white,
@@ -529,3 +468,7 @@ Future<void> _confirmLogout(BuildContext context) async {
     );
   }
 }
+}
+
+
+

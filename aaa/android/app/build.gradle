@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.aaa"
-    compileSdk = 35  // Обновлена версия SDK
+    compileSdk = 35  // Обновленная версия SDK
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -27,11 +27,21 @@ android {
         multiDexEnabled true  // Включена поддержка MultiDex
     }
 
+    signingConfigs {
+        release {
+            storeFile file("C:/Users/Nel/keys-aitu/key.jks")
+            storePassword "aitu78"
+            keyAlias "key"
+            keyPassword "aitu78"
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled true  // Включает оптимизацию кода (ProGuard)
             shrinkResources true  // Удаляет неиспользуемые ресурсы
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.release  // Привязываем конфигурацию подписи к релизу
         }
     }
 }
@@ -39,6 +49,5 @@ android {
 flutter {
     source = "../.."
 }
-
 
 
