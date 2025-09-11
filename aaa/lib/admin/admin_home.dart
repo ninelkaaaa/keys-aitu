@@ -17,6 +17,10 @@ class AdminHome extends StatefulWidget {
 class _AdminHomeState extends State<AdminHome> {
   int _currentIndex = 0;
   final String baseUrl = "http://10.250.0.19:5000";
+  
+  // Значения по умолчанию
+  static const String _defaultTeacherPhone = '+7710504939';
+  static const String _defaultTeacherName = 'Петров П.П';
 
   String _searchQuery = '';
   String _selectedFilter = 'all';
@@ -24,6 +28,10 @@ class _AdminHomeState extends State<AdminHome> {
   List<dynamic> keysList = [];
   bool isLoading = false;
   String errorMessage = '';
+  
+  // Контактная информация с сервера
+  String teacherPhone = '';
+  String teacherName = '';
 
   @override
   void initState() {
@@ -34,29 +42,49 @@ class _AdminHomeState extends State<AdminHome> {
   Future<void> _fetchKeysFromServer() async {
     setState(() => isLoading = true);
     try {
-      final url = Uri.parse('$baseUrl/users');
-      final response = await http.get(url);
+      // Получаем пользователей
+      final usersUrl = Uri.parse('$baseUrl/users');
+      final usersResponse = await http.get(usersUrl);
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
+      // Получаем контактную информацию
+      final contactUrl = Uri.parse('$baseUrl/contact-info');
+      final contactResponse = await http.get(contactUrl);
+
+      if (usersResponse.statusCode == 200) {
+        final userData = jsonDecode(usersResponse.body);
+        if (userData['status'] == 'success') {
           setState(() {
-            keysList = data['users'];
+            keysList = userData['users'];
             errorMessage = '';
           });
         } else {
           setState(() {
-            errorMessage = data['message'] ?? "Неизвестная ошибка сервера";
+            errorMessage = userData['message'] ?? "Неизвестная ошибка сервера";
           });
         }
       } else {
         setState(() {
-          errorMessage = 'Ошибка сервера: ${response.statusCode}';
+          errorMessage = 'Ошибка сервера: ${usersResponse.statusCode}';
         });
       }
+
+      // Обрабатываем контактную информацию
+      if (contactResponse.statusCode == 200) {
+        final contactData = jsonDecode(contactResponse.body);
+        if (contactData['status'] == 'success') {
+          setState(() {
+            teacherPhone = contactData['phone'] ?? _defaultTeacherPhone; // fallback
+            teacherName = contactData['teacher_name'] ?? _defaultTeacherName; // fallback
+          });
+        }
+      }
+
     } catch (e) {
       setState(() {
         errorMessage = "Ошибка: $e";
+        // Устанавливаем значения по умолчанию при ошибке
+        teacherPhone = _defaultTeacherPhone;
+        teacherName = _defaultTeacherName;
       });
     } finally {
       setState(() => isLoading = false);
