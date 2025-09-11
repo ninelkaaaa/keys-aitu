@@ -17,7 +17,7 @@ class AdminHome extends StatefulWidget {
 class _AdminHomeState extends State<AdminHome> {
   int _currentIndex = 0;
   final String baseUrl = "http://10.250.0.19:5000";
-  
+
   // Значения по умолчанию
   static const String _defaultTeacherPhone = '+7710504939';
   static const String _defaultTeacherName = 'Петров П.П';
@@ -28,7 +28,7 @@ class _AdminHomeState extends State<AdminHome> {
   List<dynamic> keysList = [];
   bool isLoading = false;
   String errorMessage = '';
-  
+
   // Контактная информация с сервера
   String teacherPhone = '';
   String teacherName = '';
@@ -42,29 +42,29 @@ class _AdminHomeState extends State<AdminHome> {
   Future<void> _fetchKeysFromServer() async {
     setState(() => isLoading = true);
     try {
-      // Получаем пользователей
-      final usersUrl = Uri.parse('$baseUrl/users');
-      final usersResponse = await http.get(usersUrl);
+      // Получаем ключи (основные данные)
+      final keysUrl = Uri.parse('$baseUrl/keys');
+      final keysResponse = await http.get(keysUrl);
 
       // Получаем контактную информацию
       final contactUrl = Uri.parse('$baseUrl/contact-info');
       final contactResponse = await http.get(contactUrl);
 
-      if (usersResponse.statusCode == 200) {
-        final userData = jsonDecode(usersResponse.body);
-        if (userData['status'] == 'success') {
+      if (keysResponse.statusCode == 200) {
+        final keyData = jsonDecode(keysResponse.body);
+        if (keyData['status'] == 'success') {
           setState(() {
-            keysList = userData['users'];
+            keysList = keyData['keys'];
             errorMessage = '';
           });
         } else {
           setState(() {
-            errorMessage = userData['message'] ?? "Неизвестная ошибка сервера";
+            errorMessage = keyData['message'] ?? "Неизвестная ошибка сервера";
           });
         }
       } else {
         setState(() {
-          errorMessage = 'Ошибка сервера: ${usersResponse.statusCode}';
+          errorMessage = 'Ошибка сервера: ${keysResponse.statusCode}';
         });
       }
 
@@ -73,12 +73,13 @@ class _AdminHomeState extends State<AdminHome> {
         final contactData = jsonDecode(contactResponse.body);
         if (contactData['status'] == 'success') {
           setState(() {
-            teacherPhone = contactData['phone'] ?? _defaultTeacherPhone; // fallback
-            teacherName = contactData['teacher_name'] ?? _defaultTeacherName; // fallback
+            teacherPhone =
+                contactData['phone'] ?? _defaultTeacherPhone; // fallback
+            teacherName =
+                contactData['teacher_name'] ?? _defaultTeacherName; // fallback
           });
         }
       }
-
     } catch (e) {
       setState(() {
         errorMessage = "Ошибка: $e";
@@ -116,8 +117,12 @@ class _AdminHomeState extends State<AdminHome> {
     }
   }
 
-
-  void _showCallDialog(BuildContext context, String title, String teacherName, String phoneNumber) {
+  void _showCallDialog(
+    BuildContext context,
+    String title,
+    String teacherName,
+    String phoneNumber,
+  ) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -237,10 +242,15 @@ class _AdminHomeState extends State<AdminHome> {
                     },
                     child: Container(
                       decoration: BoxDecoration(
-                        color: isSelected ? const Color(0xFFE3EFFE) : Colors.transparent,
+                        color: isSelected
+                            ? const Color(0xFFE3EFFE)
+                            : Colors.transparent,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 14,
+                        horizontal: 12,
+                      ),
                       child: Row(
                         children: [
                           Expanded(
@@ -248,13 +258,21 @@ class _AdminHomeState extends State<AdminHome> {
                               entry.value,
                               style: TextStyle(
                                 fontSize: 16,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                color: isSelected ? const Color(0xFF1D5DCC) : const Color(0xFF3C3C3C),
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                color: isSelected
+                                    ? const Color(0xFF1D5DCC)
+                                    : const Color(0xFF3C3C3C),
                               ),
                             ),
                           ),
                           if (isSelected)
-                            const Icon(Icons.check, color: Color(0xFF1D5DCC), size: 20),
+                            const Icon(
+                              Icons.check,
+                              color: Color(0xFF1D5DCC),
+                              size: 20,
+                            ),
                         ],
                       ),
                     ),
@@ -315,8 +333,7 @@ class _AdminHomeState extends State<AdminHome> {
                     else
                       Text(
                         "Доступен",
-                        style: TextStyle(fontSize: 14, color: Colors.grey
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey),
                       ),
                   ],
                 ),
@@ -330,7 +347,12 @@ class _AdminHomeState extends State<AdminHome> {
                 onPressed: () {
                   final teacherName = item['last_user'] ?? 'Неизвестно';
                   final phoneNumber = item['phone'] ?? '+77000000000';
-                  _showCallDialog(context, item["key_name"] ?? "", teacherName, phoneNumber);
+                  _showCallDialog(
+                    context,
+                    item["key_name"] ?? "",
+                    teacherName,
+                    phoneNumber,
+                  );
                 },
               ),
 
@@ -351,152 +373,156 @@ class _AdminHomeState extends State<AdminHome> {
       ),
     );
   }
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    bottomNavigationBar: BottomNavigationBar(
-      currentIndex: _currentIndex,
-      onTap: (index) {
-        setState(() => _currentIndex = index);
-        if (index == 1) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const MessagePage()),
-          );
-        }
-      },
-      items: const [
-        BottomNavigationBarItem(
-          icon: Icon(Icons.home_outlined),
-          activeIcon: Icon(Icons.home),
-          label: "Главная",
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.mail_outline),
-          activeIcon: Icon(Icons.mail),
-          label: "Сообщения",
-        ),
-      ],
-    ),
-    body: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Column(
-        children: [
-          SearchAndFilter(
-            searchQuery: _searchQuery,
-            onSearchChanged: (val) {
-              setState(() => _searchQuery = val);
-            },
-            onFilterPressed: _showFilterSheet,
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() => _currentIndex = index);
+          if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const MessagePage()),
+            );
+          }
+        },
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home_outlined),
+            activeIcon: Icon(Icons.home),
+            label: "Главная",
           ),
-          const SizedBox(height: 16),
-          if (isLoading)
-            const Expanded(child: Center(child: CircularProgressIndicator()))
-          else if (errorMessage.isNotEmpty)
-            Expanded(
-              child: Center(
-                child: Text(
-                  errorMessage,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                itemCount: _filteredItems.length,
-                itemBuilder: (context, index) {
-                  final item = _filteredItems[index];
-                  print('Item contents: $item');
-                  return InkWell(
-                    onTap: () {
-                      final teacherName = item['last_user'] ?? 'Неизвестно';
-                      final phoneNumber = item['phone'] ?? '+77000000000';
-                      _showCallDialog(context, item["key_name"] ?? "", teacherName, phoneNumber);
-                    },
-                    child: _buildItemCard(item),
-                  );
-                },
-              ),
-            ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.mail_outline),
+            activeIcon: Icon(Icons.mail),
+            label: "Сообщения",
+          ),
         ],
       ),
-    ),
-  );
-}
-Future<void> _confirmLogout(BuildContext context) async {
-  final shouldLogout = await showDialog<bool>(
-    context: context,
-    barrierDismissible: false,
-    builder: (context) => Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      backgroundColor: Colors.white,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
           children: [
+            SearchAndFilter(
+              searchQuery: _searchQuery,
+              onSearchChanged: (val) {
+                setState(() => _searchQuery = val);
+              },
+              onFilterPressed: _showFilterSheet,
+            ),
             const SizedBox(height: 16),
-            const Text(
-              "Подтвердите выход",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              "Вы действительно хотите выйти из аккаунта?",
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.black54),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black87,
-                      side: const BorderSide(color: Colors.black26),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    onPressed: () => Navigator.of(context).pop(false),
-                    child: const Text("Отмена"),
+            if (isLoading)
+              const Expanded(child: Center(child: CircularProgressIndicator()))
+            else if (errorMessage.isNotEmpty)
+              Expanded(
+                child: Center(
+                  child: Text(
+                    errorMessage,
+                    style: const TextStyle(color: Colors.red),
                   ),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2F80ED),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                    onPressed: () => Navigator.of(context).pop(true),
-                    child: const Text("Выйти"),
-                  ),
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  itemCount: _filteredItems.length,
+                  itemBuilder: (context, index) {
+                    final item = _filteredItems[index];
+                    print('Item contents: $item');
+                    return InkWell(
+                      onTap: () {
+                        final teacherName = item['last_user'] ?? 'Неизвестно';
+                        final phoneNumber = item['phone'] ?? '+77000000000';
+                        _showCallDialog(
+                          context,
+                          item["key_name"] ?? "",
+                          teacherName,
+                          phoneNumber,
+                        );
+                      },
+                      child: _buildItemCard(item),
+                    );
+                  },
                 ),
-              ],
-            ),
+              ),
           ],
         ),
       ),
-    ),
-  );
-
-  if (shouldLogout == true) {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove("user_id");
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
     );
   }
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 16),
+              const Text(
+                "Подтвердите выход",
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                "Вы действительно хотите выйти из аккаунта?",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.black54),
+              ),
+              const SizedBox(height: 24),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.black87,
+                        side: const BorderSide(color: Colors.black26),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(false),
+                      child: const Text("Отмена"),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF2F80ED),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      onPressed: () => Navigator.of(context).pop(true),
+                      child: const Text("Выйти"),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (shouldLogout == true) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove("user_id");
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginScreen()),
+      );
+    }
+  }
 }
-}
-
-
-
