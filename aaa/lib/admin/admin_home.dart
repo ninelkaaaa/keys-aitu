@@ -52,17 +52,20 @@ class _AdminHomeState extends State<AdminHome> {
 
       if (keysResponse.statusCode == 200) {
         final keyData = jsonDecode(keysResponse.body);
+        print('Server response: $keyData'); // Отладка
         if (keyData['status'] == 'success') {
           setState(() {
             keysList = keyData['keys'];
             errorMessage = '';
           });
+          print('Keys loaded: ${keysList.length} items'); // Отладка
         } else {
           setState(() {
             errorMessage = keyData['message'] ?? "Неизвестная ошибка сервера";
           });
         }
       } else {
+        print('HTTP Error: ${keysResponse.statusCode}'); // Отладка
         setState(() {
           errorMessage = 'Ошибка сервера: ${keysResponse.statusCode}';
         });
