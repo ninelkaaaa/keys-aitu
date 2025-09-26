@@ -159,40 +159,56 @@ class _ConfirmActionScreenState extends State<ConfirmActionScreen> {
                   ),
                   const SizedBox(height: 40),
 
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  Column(
                     children: [
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: blue,
-                          foregroundColor: Colors.white,
-                        ),
-                        onPressed: () {
-                          switch (widget.action.toLowerCase()) {
-                            case "получить":
-                              _requestKey();
-                              break;
-                            case "сдать":
-                              _returnKey();
-                              break;
-                            case "передать":
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => KeyTransferRequestScreen(
-                                    keyId: int.parse(id),
-                                    currentUserId: widget.userId,
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: blue,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () {
+                            switch (widget.action.toLowerCase()) {
+                              case "получить":
+                                _requestKey();
+                                break;
+                              case "сдать":
+                                _returnKey();
+                                break;
+                              case "передать":
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => KeyTransferRequestScreen(
+                                      keyId: int.parse(id),
+                                      currentUserId: widget.userId,
+                                    ),
                                   ),
-                                ),
-                              );
-                              break;
-                          }
-                        },
-                        child: const Text("Да"),
+                                );
+                                break;
+                            }
+                          },
+                          child: const Text("Да", style: TextStyle(fontSize: 18)),
+                        ),
                       ),
-                      OutlinedButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text("Нет"),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text("Нет", style: TextStyle(fontSize: 18)),
+                          )
                       ),
                     ],
                   ),

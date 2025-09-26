@@ -170,7 +170,7 @@ class _AdminHomeState extends State<AdminHome> {
                     child: ElevatedButton.icon(
                       onPressed: () => _makePhoneCall(phoneNumber),
                       icon: const Icon(Icons.phone),
-                      label: Text('Позвонить: $phoneNumber'),
+                      label: Text('$phoneNumber'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFF2E70E8),
                         foregroundColor: Colors.white,
@@ -377,33 +377,43 @@ class _AdminHomeState extends State<AdminHome> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
-          setState(() => _currentIndex = index);
-          if (index == 1) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const MessagePage()),
-            );
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home),
-            label: "Главная",
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.mail_outline),
-            activeIcon: Icon(Icons.mail),
-            label: "Сообщения",
-          ),
-        ],
-      ),
+ @override
+ Widget build(BuildContext context) {
+   return Scaffold(
+     appBar: AppBar(
+       title: const Text("Управление ключами"),
+       actions: [
+         IconButton(
+           icon: const Icon(Icons.logout),
+           tooltip: "Выйти",
+           onPressed: () => _confirmLogout(context),
+         ),
+       ],
+     ),
+     bottomNavigationBar: BottomNavigationBar(
+       currentIndex: _currentIndex,
+       onTap: (index) {
+         setState(() => _currentIndex = index);
+         if (index == 1) {
+           Navigator.push(
+             context,
+             MaterialPageRoute(builder: (_) => const MessagePage()),
+           );
+         }
+       },
+       items: const [
+         BottomNavigationBarItem(
+           icon: Icon(Icons.home_outlined),
+           activeIcon: Icon(Icons.home),
+           label: "Главная",
+         ),
+         BottomNavigationBarItem(
+           icon: Icon(Icons.mail_outline),
+           activeIcon: Icon(Icons.mail),
+           label: "Сообщения",
+         ),
+       ],
+     ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(

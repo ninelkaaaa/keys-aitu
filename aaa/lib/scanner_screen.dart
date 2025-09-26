@@ -122,6 +122,7 @@ void _onDetect(BarcodeCapture cap) {
           ),
           const SizedBox(height: 24),
 
+
           /* область сканера */
           Container(
             width: 300,
@@ -130,11 +131,10 @@ void _onDetect(BarcodeCapture cap) {
               border: Border.all(color: blue, width: 2),
               borderRadius: BorderRadius.circular(12),
             ),
-         child: MobileScanner(
-  controller: _controller,
-  onDetect: _onDetect,
-),
-
+            child: MobileScanner(
+              controller: _controller,
+              onDetect: _onDetect,
+            ),
           ),
 
           const SizedBox(height: 16),
@@ -148,16 +148,25 @@ void _onDetect(BarcodeCapture cap) {
           ),
           const SizedBox(height: 30),
 
-          ElevatedButton.icon(
-            onPressed: _start,
-            icon: const Icon(Icons.qr_code_scanner),
-            label: const Text("Сканировать"),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: blue,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
-              textStyle: const TextStyle(fontSize: 18),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _start,
+                icon: const Icon(Icons.qr_code_scanner),
+                label: const Text("Сканировать"),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  textStyle: const TextStyle(fontSize: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  ),
+              ),
             ),
           ),
         ],

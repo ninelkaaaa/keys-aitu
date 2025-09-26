@@ -68,8 +68,8 @@ class _MessagePageState extends State<MessagePage> {
 
             final isReceive = act == 'request';
             final title = isReceive
-                ? "Подтвердить получение ключа от $user?"
-                : "Подтвердить сдачу ключа от $user?";
+                ? "Подтвердить для: $user?"
+                : "Подтвердить для $user?";
 
             return PendingRequest(
               historyId: hId,
@@ -262,98 +262,111 @@ class _MessagePageState extends State<MessagePage> {
     );
   }
 
-  Widget _buildRequestCard(PendingRequest req) {
-    return Container(
-      color: req.status == ActionStatus.pending
-          ? const Color(0xFFEDF3FF)
-          : Colors.white,
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const SizedBox(width: 16),
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: req.isReceive ? Colors.blue : Colors.green,
-                  shape: BoxShape.circle,
-                ),
+Widget _buildRequestCard(PendingRequest req) {
+  final String mainTitle = req.isReceive
+      ? "Подтверждение получения"
+      : "Подтверждение сдачи";
+
+  final String userName =
+      req.title.replaceAll(mainTitle, "").replaceAll("ключа от", "").trim();
+
+  return Container(
+    color: req.status == ActionStatus.pending
+        ? const Color(0xFFEDF3FF)
+        : Colors.white,
+    padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Заголовок + кабинет
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              mainTitle,
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      req.title, // "Подтвердить получение ключа от Петров П..."
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      req.room, // "C1.3.240"
-                      style: const TextStyle(fontSize: 16, color: Colors.black),
-                    ),
-                  ],
-                ),
+            ),
+            Text(
+              req.room,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2E70E8),
               ),
-              Text(
-                req.time,
-                style: const TextStyle(fontSize: 14, color: Colors.grey),
-              ),
-              const SizedBox(width: 16),
-            ],
-          ),
-          if (req.status == ActionStatus.pending)
-            Padding(
-              padding: const EdgeInsets.only(left: 60, top: 8),
-              child: Row(
-                children: [
-                  ElevatedButton(
+            ),
+          ],
+        ),
+        const SizedBox(height: 6),
+
+        // Имя пользователя
+        Text(
+          userName,
+          style: const TextStyle(fontSize: 15, color: Colors.black),
+        ),
+        const SizedBox(height: 6),
+
+        // Время
+        Text(
+          req.time,
+          style: const TextStyle(fontSize: 14, color: Colors.grey),
+        ),
+
+        // Кнопки "Да" / "Нет"
+        if (req.status == ActionStatus.pending)
+          Padding(
+            padding: const EdgeInsets.only(top: 12),
+            child: Row(
+              children: [
+                // Кнопка "Да"
+                Expanded(
+                  child: ElevatedButton(
                     onPressed: () async {
                       await _approveRequest(req.historyId);
                       setState(() => req.status = ActionStatus.confirmed);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2E70E8),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      backgroundColor: const Color(0xFF2E70E8), // синий фон
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
                       ),
                     ),
                     child: const Text(
                       "Да",
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Colors.white, // белый текст
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  OutlinedButton(
+                ),
+                const SizedBox(width: 16),
+
+                // Кнопка "Нет"
+                Expanded(
+                  child: OutlinedButton(
                     onPressed: () async {
                       await _denyRequest(req.historyId);
                       setState(() => req.status = ActionStatus.cancelled);
                     },
                     style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFF2E70E8)),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      side: const BorderSide(color: Color(0xFF2E70E8), width: 1.5),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.zero,
                       ),
                     ),
                     child: const Text(
-                      "Отмена",
-                      style: TextStyle(fontSize: 16, color: Color(0xFF2E70E8)),
+                      "Нет",
+                      style: TextStyle(
+                        fontSize: 15,
+                        color: Color(0xFF2E70E8),
+                         ),// синий текст
+                    ),
                     ),
                   ),
                 ],
