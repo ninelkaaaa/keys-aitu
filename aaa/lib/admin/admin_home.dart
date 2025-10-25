@@ -18,7 +18,7 @@ class _AdminHomeState extends State<AdminHome> {
   int _currentIndex = 0;
   final String baseUrl = "http://10.250.0.19:5000";
 
-  // Значения по умолчанию
+
   static const String _defaultTeacherPhone = '+7710504939';
   static const String _defaultTeacherName = 'Петров П.П';
 
@@ -29,7 +29,7 @@ class _AdminHomeState extends State<AdminHome> {
   bool isLoading = false;
   String errorMessage = '';
 
-  // Контактная информация с сервера
+
   String teacherPhone = '';
   String teacherName = '';
 
@@ -42,51 +42,51 @@ class _AdminHomeState extends State<AdminHome> {
   Future<void> _fetchKeysFromServer() async {
     setState(() => isLoading = true);
     try {
-      // Получаем ключи (основные данные)
+
       final keysUrl = Uri.parse('$baseUrl/keys');
       final keysResponse = await http.get(keysUrl);
 
-      // Получаем контактную информацию
+
       final contactUrl = Uri.parse('$baseUrl/contact-info');
       final contactResponse = await http.get(contactUrl);
 
       if (keysResponse.statusCode == 200) {
         final keyData = jsonDecode(keysResponse.body);
-        print('Server response: $keyData'); // Отладка
+        print('Server response: $keyData');
         if (keyData['status'] == 'success') {
           setState(() {
             keysList = keyData['keys'];
             errorMessage = '';
           });
-          print('Keys loaded: ${keysList.length} items'); // Отладка
+          print('Keys loaded: ${keysList.length} items');
         } else {
           setState(() {
             errorMessage = keyData['message'] ?? "Неизвестная ошибка сервера";
           });
         }
       } else {
-        print('HTTP Error: ${keysResponse.statusCode}'); // Отладка
+        print('HTTP Error: ${keysResponse.statusCode}');
         setState(() {
           errorMessage = 'Ошибка сервера: ${keysResponse.statusCode}';
         });
       }
 
-      // Обрабатываем контактную информацию
+
       if (contactResponse.statusCode == 200) {
         final contactData = jsonDecode(contactResponse.body);
         if (contactData['status'] == 'success') {
           setState(() {
             teacherPhone =
-                contactData['phone'] ?? _defaultTeacherPhone; // fallback
+                contactData['phone'] ?? _defaultTeacherPhone;
             teacherName =
-                contactData['teacher_name'] ?? _defaultTeacherName; // fallback
+                contactData['teacher_name'] ?? _defaultTeacherName;
           });
         }
       }
     } catch (e) {
       setState(() {
         errorMessage = "Ошибка: $e";
-        // Устанавливаем значения по умолчанию при ошибке
+
         teacherPhone = _defaultTeacherPhone;
         teacherName = _defaultTeacherName;
       });
@@ -343,7 +343,6 @@ class _AdminHomeState extends State<AdminHome> {
               ),
             ),
 
-            // Кнопка звонка, если ключ выдан
             if (!isAvailable)
               IconButton(
                 icon: const Icon(Icons.phone, color: Colors.blue),
@@ -359,7 +358,7 @@ class _AdminHomeState extends State<AdminHome> {
                 },
               ),
 
-            // Индикатор доступности
+
             Padding(
               padding: const EdgeInsets.only(right: 12),
               child: Container(

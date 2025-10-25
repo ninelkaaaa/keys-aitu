@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-// Импортируем, если хотим перейти обратно к сканеру
+
 
 class AccessDeniedScreen extends StatelessWidget {
   final String cabinetCode;
@@ -28,7 +28,7 @@ class AccessDeniedScreen extends StatelessWidget {
             const SizedBox(height: 30),
             ElevatedButton(
               onPressed: () {
-                Navigator.pop(context); // Возврат назад (в сканер)
+                Navigator.pop(context);
               },
               child: const Text("Вернуться назад"),
             ),

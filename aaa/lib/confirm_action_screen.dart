@@ -4,9 +4,9 @@ import 'dart:convert';
 import 'key_transfer.dart';
 
 class ConfirmActionScreen extends StatefulWidget {
-  final String cabinetCode; // ID из QR
-  final String action; // получить / сдать / передать
-  final int userId; // текущий пользователь
+  final String cabinetCode;
+  final String action;
+  final int userId;
 
   const ConfirmActionScreen({
     super.key,
@@ -21,7 +21,7 @@ class ConfirmActionScreen extends StatefulWidget {
 
 class _ConfirmActionScreenState extends State<ConfirmActionScreen> {
   static const baseUrl = "http://10.250.0.19:5000";
-  String? keyLabel; // C1.3.221
+  String? keyLabel;
   bool loading = true;
 
   @override
@@ -55,7 +55,7 @@ class _ConfirmActionScreenState extends State<ConfirmActionScreen> {
   Future<void> _returnKey() async {
     final res = await http.post(
       Uri.parse("$baseUrl/request-key"),
-      headers: {"Content-Type": "application/json"}, // 🔴 ЭТО ОБЯЗАТЕЛЬНО
+      headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "user_id": widget.userId,
         "key_id": int.parse(widget.cabinetCode),
@@ -81,54 +81,71 @@ class _ConfirmActionScreenState extends State<ConfirmActionScreen> {
     final ok = res.statusCode == 200;
     final mess = jsonDecode(res.body)["message"] ?? "Ошибка";
 
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
-          children: [
-            Icon(
-              ok ? Icons.check_circle : Icons.error,
-              color: ok ? Colors.green : Colors.red,
-              size: 28,
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                ok ? "Готово" : "Ошибка",
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: Text(
-          mess,
-          style: const TextStyle(fontSize: 16, color: Colors.black87),
-        ),
-        actionsPadding: const EdgeInsets.only(right: 12, bottom: 8),
-        actions: [
-          TextButton(
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.blue,
-              textStyle: const TextStyle(fontSize: 18),
-            ),
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.pop(context, ok);
-            },
-            child: const Text("OK"),
+   showDialog(
+     context: context,
+     barrierDismissible: false,
+     builder: (_) => AlertDialog(
+       backgroundColor: Colors.white,
+       shape: RoundedRectangleBorder(
+         borderRadius: BorderRadius.circular(16),
+       ),
+       title: Row(
+         children: [
+           Icon(
+             ok ? Icons.check_circle : Icons.error,
+             color: ok ? Colors.green : Colors.red,
+             size: 28,
+           ),
+           const SizedBox(width: 8),
+           Expanded(
+             child: Text(
+               ok ? "Готово" : "Ошибка",
+               style: const TextStyle(
+                 fontSize: 20,
+                 fontWeight: FontWeight.w700,
+               ),
+             ),
+           ),
+         ],
+       ),
+       content: Text(
+         mess,
+         style: const TextStyle(
+           fontSize: 16,
+           color: Colors.black87,
+         ),
+       ),
+       actionsPadding: const EdgeInsets.only(
+         left: 16,
+         right: 16,
+         bottom: 16,
+       ),
+       actions: [
+         SizedBox(
+           width: double.infinity,
+           child: ElevatedButton(
+             style: ElevatedButton.styleFrom(
+               backgroundColor: Colors.blue,
+               foregroundColor: Colors.white,
+               padding: const EdgeInsets.symmetric(vertical: 16),
+               textStyle: const TextStyle(fontSize: 18),
+               shape: RoundedRectangleBorder(
+                 borderRadius: BorderRadius.circular(12),
+               ),
+             ),
+             onPressed: () {
+               Navigator.pop(context);
+               Navigator.pop(context, ok);
+             },
+             child: const Text("OK"),
+             ),
           ),
         ],
       ),
     );
   }
 
-  /* ───────── UI ─────────────────────────────────────── */
+
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +197,7 @@ class _ConfirmActionScreenState extends State<ConfirmActionScreen> {
                               case "сдать":
                                 _returnKey();
                                 break;
-                              case "передать":
+                              case "запросить":
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(

@@ -23,11 +23,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void initState() {
     super.initState();
     _saveOpenedTime();
-    setState(() => isLoading = true); // показываем лоадер
+    setState(() => isLoading = true);
 
     Future.wait([_fetchHistory(), _fetchTransferRequests()]).then((_) {
       if (mounted) {
-        setState(() => isLoading = false); // безопасный вызов
+        setState(() => isLoading = false);
       }
     });
   }
@@ -50,11 +50,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             allHistory.where((e) => e['user_id'] == widget.userId).toList()
               ..sort((a, b) => b["timestamp"].compareTo(a["timestamp"]));
 
-        if (!mounted) return; // 🛑 проверка перед setState
+        if (!mounted) return;
         setState(() => userHistory = filtered);
       }
     } catch (_) {
-      if (!mounted) return; // 🛑 защита
+      if (!mounted) return;
       setState(() {
         isLoading = false;
       });

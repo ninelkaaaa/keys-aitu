@@ -89,7 +89,7 @@ class _KeyTransferRequestScreenState extends State<KeyTransferRequestScreen> {
     }
   }
 
-  /* ─────────── UI ─────────── */
+
 
   @override
   Widget build(BuildContext context) {

@@ -1,5 +1,4 @@
-// import 'package:aaa/admin/admin_home.dart';
-// import 'package:aaa/home_screen.dart';
+
 import 'package:aaa/login_sreen.dart';
 
 
@@ -10,7 +9,6 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-    // final int userId = 1; 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -42,9 +40,7 @@ class MyApp extends StatelessWidget {
   ),
 ),
 
-       home: LoginScreen(), 
-      // home: HomeScreen(userId: userId)
-      // home: AdminHome()
+       home: LoginScreen(),
     );
   }
 }

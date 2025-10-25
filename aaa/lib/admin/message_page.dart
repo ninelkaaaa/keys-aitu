@@ -278,7 +278,7 @@ Widget _buildRequestCard(PendingRequest req) {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Заголовок + кабинет
+
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
@@ -302,26 +302,26 @@ Widget _buildRequestCard(PendingRequest req) {
         ),
         const SizedBox(height: 6),
 
-        // Имя пользователя
+
         Text(
           userName,
           style: const TextStyle(fontSize: 15, color: Colors.black),
         ),
         const SizedBox(height: 6),
 
-        // Время
+
         Text(
           req.time,
           style: const TextStyle(fontSize: 14, color: Colors.grey),
         ),
 
-        // Кнопки "Да" / "Нет"
+
         if (req.status == ActionStatus.pending)
           Padding(
             padding: const EdgeInsets.only(top: 12),
             child: Row(
               children: [
-                // Кнопка "Да"
+
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () async {
@@ -329,7 +329,7 @@ Widget _buildRequestCard(PendingRequest req) {
                       setState(() => req.status = ActionStatus.confirmed);
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF2E70E8), // синий фон
+                      backgroundColor: const Color(0xFF2E70E8),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       shape: const RoundedRectangleBorder(
                         borderRadius: BorderRadius.zero,
@@ -339,14 +339,14 @@ Widget _buildRequestCard(PendingRequest req) {
                       "Да",
                       style: TextStyle(
                         fontSize: 15,
-                        color: Colors.white, // белый текст
+                        color: Colors.white,
                       ),
                     ),
                   ),
                 ),
                 const SizedBox(width: 16),
 
-                // Кнопка "Нет"
+
                 Expanded(
                   child: OutlinedButton(
                     onPressed: () async {
@@ -365,7 +365,7 @@ Widget _buildRequestCard(PendingRequest req) {
                       style: TextStyle(
                         fontSize: 15,
                         color: Color(0xFF2E70E8),
-                         ),// синий текст
+                         ),
                     ),
                     ),
                   ),

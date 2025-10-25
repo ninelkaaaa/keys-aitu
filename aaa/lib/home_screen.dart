@@ -34,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     super.initState();
     _fetchMyKeys();
-    _fetchKeyHistory(); // загрузка сразу
+    _fetchKeyHistory();
     _checkNewNotifications();
 
     _autoRefreshTimer = Timer.periodic(
@@ -48,7 +48,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _historyTimer = Timer.periodic(
       const Duration(minutes: 1),
       (_) => _fetchKeyHistory(),
-    ); // ⏱️ раз в минуту
+    );
   }
 
   @override
@@ -189,7 +189,7 @@ class _HomeScreenState extends State<HomeScreen> {
               text: "Передать ключ",
               onTap: () {
                 Navigator.pop(context);
-                _openScanner("передать");
+                _openScanner("запросить");
               },
             ),
           ],
@@ -350,8 +350,6 @@ class _HomeScreenState extends State<HomeScreen> {
         final item = myKeys[index];
         final keyName = item["key_name"] ?? "???";
         final status = item["status"] == true;
-
-        // Найдём последнюю запись выдачи по этому ключу
         final issueRecord = history.firstWhere(
           (h) => h["key_name"] == keyName && h["action"] == "issue",
           orElse: () => null,

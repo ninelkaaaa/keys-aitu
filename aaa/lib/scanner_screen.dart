@@ -20,14 +20,14 @@ class _ScannerScreenState extends State<ScannerScreen> {
   final MobileScannerController _controller = MobileScannerController();
   bool _isActive = false;
   bool _scanned = false;
-  bool _torchOn = false;                       // 🔦 новое состояние
+  bool _torchOn = false;
   String _hint = "Отсканируйте QR‑код ключа";
 
   void _start() {
     setState(() {
       _isActive = true;
       _scanned = false;
-      _hint = "🔍 Сканирование…";
+      _hint = " Сканирование…";
     });
   }
 
@@ -45,18 +45,18 @@ void _onDetect(BarcodeCapture cap) {
   try {
     final data = jsonDecode(raw);
     if (data is! Map || !data.containsKey("key_id")) {
-      setState(() => _hint = "❌ Неверный QR-код (без key_id)");
+      setState(() => _hint = "Неверный QR-код (без key_id)");
       return;
     }
 
     final id = data["key_id"];
     if (id is! int) {
-      setState(() => _hint = "❌ key_id должен быть числом");
+      setState(() => _hint = "key_id должен быть числом");
       return;
     }
 
     setState(() {
-      _hint = "🔑 Найден ключ";
+      _hint = "Найден ключ";
       _isActive = false;
       _scanned = true;
     });
@@ -74,7 +74,7 @@ void _onDetect(BarcodeCapture cap) {
       );
     });
   } catch (e) {
-    setState(() => _hint = "❌ Невозможно прочитать QR (ошибка формата)");
+    setState(() => _hint = "Невозможно прочитать QR (ошибка формата)");
   }
 }
 
@@ -85,7 +85,6 @@ void _onDetect(BarcodeCapture cap) {
     super.dispose();
   }
 
-  /// ---------- UI ----------
   @override
   Widget build(BuildContext context) {
     const blue = Color(0xFF2E70E8);
@@ -99,7 +98,7 @@ void _onDetect(BarcodeCapture cap) {
         foregroundColor: blue,
         elevation: 1,
         actions: [
-          IconButton(                       // 🔦 кнопка‑фонарик
+          IconButton(
             tooltip: _torchOn ? "Выключить фонарик" : "Включить фонарик",
             icon: Icon(
               _torchOn ? Icons.flashlight_off : Icons.flashlight_on,
@@ -123,7 +122,6 @@ void _onDetect(BarcodeCapture cap) {
           const SizedBox(height: 24),
 
 
-          /* область сканера */
           Container(
             width: 300,
             height: 300,

@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.aaa"
-    compileSdk = 35  // Обновленная версия SDK
+    compileSdk = 35
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -38,7 +38,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true  // Включает оптимизацию кода (ProGuard)
+            minifyEnabled true  // Включает оптимизацию кода
             shrinkResources true  // Удаляет неиспользуемые ресурсы
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.release  // Привязываем конфигурацию подписи к релизу
