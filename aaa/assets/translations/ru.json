@@ -1,0 +1,9 @@
+{
+  "login": "Вход",
+  "phone": "Телефон",
+  "password": "Пароль",
+  "enter": "Войти",
+  "login_error": "Неверный телефон или пароль",
+  "network_error": "Ошибка сети",
+  "language_select": "Выберите язык"
+}

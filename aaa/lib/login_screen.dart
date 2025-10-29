@@ -3,10 +3,11 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:math';
+import 'package:flutter/services.dart';
+import 'package:easy_localization/easy_localization.dart';
 
 import 'home_screen.dart';
 import 'admin/admin_home.dart';
-import 'package:flutter/services.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -62,7 +63,7 @@ class _LoginScreenState extends State<LoginScreen> {
         if (mounted) {
           setState(() {
             isError = true;
-            errorMessage = "Данные введены неверно.Попробуйте снова";
+            errorMessage = tr('login_error');
           });
         }
       }
@@ -70,7 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (mounted) {
         setState(() {
           isError = true;
-          errorMessage = "Ошибка сети: $e";
+          errorMessage = "${tr('network_error')}: $e";
         });
       }
     } finally {
@@ -95,12 +96,12 @@ class _LoginScreenState extends State<LoginScreen> {
       formatted += ' ${digits.substring(7, min(9, digits.length))}';
     if (digits.length > 9)
       formatted += ' ${digits.substring(9, min(11, digits.length))}';
-
     return TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
     );
   });
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,28 +112,27 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             Image.asset('assets/logo.png', width: 200),
             const SizedBox(height: 50),
-            const Text(
-              "Вход",
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Text(
+              tr('login'),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
             TextField(
               controller: phoneController,
               keyboardType: TextInputType.phone,
               inputFormatters: [_phoneFormatter],
-              decoration: const InputDecoration(
-                labelText: "Телефон",
+              decoration: InputDecoration(
+                labelText: tr('phone'),
                 hintText: "+7 xxx xxx xx xx",
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 15),
             TextField(
               controller: passwordController,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: "Код доступа",
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(labelText: tr('password'),
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 10),
@@ -142,25 +142,27 @@ class _LoginScreenState extends State<LoginScreen> {
             isLoading
                 ? const CircularProgressIndicator()
                 : SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _loginRequest,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(vertical: 15),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: const Text(
-                        "Войти",
-                        style: TextStyle(color: Colors.white, fontSize: 18),
-                      ),
-                    ),
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loginRequest,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  padding: const EdgeInsets.symmetric(vertical: 15),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
                   ),
+                ),
+                child: Text(
+                  tr('enter'),
+                  style:
+                  const TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+            ),
           ],
         ),
       ),
     );
   }
 }
+

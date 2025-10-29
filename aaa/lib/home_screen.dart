@@ -5,7 +5,7 @@ import 'dart:async';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shimmer/shimmer.dart';
 
-import 'login_sreen.dart';
+import 'login_screen.dart';
 import 'scanner_screen.dart';
 import 'user_notifications_screen.dart';
 
